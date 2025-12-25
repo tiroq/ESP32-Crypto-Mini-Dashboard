@@ -1,4 +1,8 @@
 #include <Arduino.h>
+
+#ifndef UNIT_TEST
+// Main application code - excluded during unit testing
+
 #include <lvgl.h>
 #include "hw/hw_display.h"
 #include "hw/hw_touch.h"
@@ -106,3 +110,5 @@ void loop() {
     hw_display_tick();
     delay(5);
 }
+
+#endif // UNIT_TEST
