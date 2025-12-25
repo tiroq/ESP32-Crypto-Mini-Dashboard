@@ -1,5 +1,263 @@
 #include "app_scheduler.h"
+#include "app_config.h"
+#include "app_model.h"
+#include "app_math.h"
+#include "../net/net_wifi.h"
+#include "../net/net_binance.h"
+#include "../net/net_coinbase.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+// Task handles
+static TaskHandle_t net_task_handle = NULL;
+
+// Backoff configuration
+static const uint32_t BACKOFF_MIN_MS = 1000;      // 1 second minimum backoff
+static const uint32_t BACKOFF_MAX_MS = 60000;     // 1 minute maximum backoff
+static const float BACKOFF_MULTIPLIER = 1.5;      // Exponential backoff multiplier
+
+// Per-symbol backoff state
+struct BackoffState {
+    uint32_t current_delay_ms;
+    unsigned long last_attempt_ms;
+    
+    BackoffState() : current_delay_ms(BACKOFF_MIN_MS), last_attempt_ms(0) {}
+    
+    void reset() {
+        current_delay_ms = BACKOFF_MIN_MS;
+    }
+    
+    void increase() {
+        current_delay_ms = min((uint32_t)(current_delay_ms * BACKOFF_MULTIPLIER), BACKOFF_MAX_MS);
+    }
+    
+    bool should_retry(unsigned long now_ms) {
+        return (now_ms - last_attempt_ms) >= current_delay_ms;
+    }
+    
+    void mark_attempt(unsigned long now_ms) {
+        last_attempt_ms = now_ms;
+    }
+};
+
+static BackoffState price_backoff[3];    // One per symbol
+static BackoffState funding_backoff[3];  // One per symbol
+
+/**
+ * @brief Fetch and update spot prices for all symbols
+ * @return Number of successful fetches
+ */
+static int fetch_all_prices() {
+    const AppConfig& cfg = config_get();
+    int success_count = 0;
+    unsigned long now = millis();
+    
+    for (int i = 0; i < cfg.num_symbols; i++) {
+        // Check if we should retry this symbol (backoff)
+        if (!price_backoff[i].should_retry(now)) {
+            continue;
+        }
+        
+        const SymbolConfig* sym = config_get_symbol(i);
+        if (!sym) continue;
+        
+        price_backoff[i].mark_attempt(now);
+        
+        // Get current state to preserve other fields
+        AppState snapshot = model_snapshot();
+        SymbolState state = snapshot.symbols[i];
+        
+        state.symbol_name = sym->display_name;
+        state.binance_symbol = sym->binance_symbol;
+        state.coinbase_product = sym->coinbase_product;
+        
+        bool binance_ok = false;
+        bool coinbase_ok = false;
+        
+        // Fetch Binance spot price
+        double binance_price = 0.0;
+        if (net_binance::fetch_spot(sym->binance_symbol, &binance_price)) {
+            state.binance_quote.price = binance_price;
+            state.binance_quote.valid = true;
+            state.binance_quote.last_update_ms = millis();
+            binance_ok = true;
+        } else {
+            state.binance_quote.valid = false;
+        }
+        
+        // Fetch Coinbase spot price
+        double coinbase_price = 0.0;
+        if (net_coinbase::fetch_spot(sym->coinbase_product, &coinbase_price)) {
+            state.coinbase_quote.price = coinbase_price;
+            state.coinbase_quote.valid = true;
+            state.coinbase_quote.last_update_ms = millis();
+            coinbase_ok = true;
+        } else {
+            state.coinbase_quote.valid = false;
+        }
+        
+        // Calculate spread if both prices are valid
+        if (state.binance_quote.valid && state.coinbase_quote.valid) {
+            double spread_abs, spread_pct;
+            if (calc_spread(state.binance_quote.price, state.coinbase_quote.price, 
+                          &spread_abs, &spread_pct)) {
+                state.spread_abs = spread_abs;
+                state.spread_pct = spread_pct;
+                state.spread_valid = true;
+            } else {
+                state.spread_valid = false;
+            }
+        } else {
+            state.spread_valid = false;
+        }
+        
+        // Update model with fetched data
+        model_update_symbol(i, state);
+        
+        // Update backoff: reset on success, increase on failure
+        if (binance_ok && coinbase_ok) {
+            price_backoff[i].reset();
+            success_count++;
+        } else {
+            price_backoff[i].increase();
+            Serial.printf("[SCHEDULER] Price fetch failed for %s, backing off to %lums\n",
+                         sym->display_name, price_backoff[i].current_delay_ms);
+        }
+    }
+    
+    return success_count;
+}
+
+/**
+ * @brief Fetch and update funding rates for all symbols
+ * @return Number of successful fetches
+ */
+static int fetch_all_funding() {
+    const AppConfig& cfg = config_get();
+    int success_count = 0;
+    unsigned long now = millis();
+    
+    for (int i = 0; i < cfg.num_symbols; i++) {
+        // Check if we should retry this symbol (backoff)
+        if (!funding_backoff[i].should_retry(now)) {
+            continue;
+        }
+        
+        const SymbolConfig* sym = config_get_symbol(i);
+        if (!sym) continue;
+        
+        funding_backoff[i].mark_attempt(now);
+        
+        // Get current state to preserve other fields
+        AppState snapshot = model_snapshot();
+        SymbolState state = snapshot.symbols[i];
+        
+        // Fetch Binance funding rate
+        double funding_rate = 0.0;
+        if (net_binance::fetch_funding(sym->binance_symbol, &funding_rate)) {
+            state.funding.rate = funding_rate;
+            state.funding.valid = true;
+            state.funding.last_update_ms = millis();
+            funding_backoff[i].reset();
+            success_count++;
+        } else {
+            state.funding.valid = false;
+            funding_backoff[i].increase();
+            Serial.printf("[SCHEDULER] Funding fetch failed for %s, backing off to %lums\n",
+                         sym->display_name, funding_backoff[i].current_delay_ms);
+        }
+        
+        // Update model with funding data
+        model_update_symbol(i, state);
+    }
+    
+    return success_count;
+}
+
+/**
+ * @brief Network task - periodic data fetching
+ * 
+ * Runs independently from UI loop. Fetches:
+ * - Spot prices every PRICE_REFRESH_MS
+ * - Funding rates every FUNDING_REFRESH_MS
+ * 
+ * Implements exponential backoff on failures per symbol.
+ */
+static void net_task(void* parameter) {
+    Serial.println("[SCHEDULER] Net task started");
+    
+    unsigned long last_price_fetch = 0;
+    unsigned long last_funding_fetch = 0;
+    
+    // Wait for Wi-Fi to connect before starting
+    while (!net_wifi_is_connected()) {
+        Serial.println("[SCHEDULER] Waiting for Wi-Fi connection...");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    
+    Serial.println("[SCHEDULER] Wi-Fi connected, starting periodic fetches");
+    
+    while (true) {
+        unsigned long now = millis();
+        
+        // Only fetch if Wi-Fi is connected
+        if (net_wifi_is_connected()) {
+            // Fetch prices based on configured interval
+            if (now - last_price_fetch >= config_get_price_refresh_ms()) {
+                last_price_fetch = now;
+                Serial.println("[SCHEDULER] Fetching prices...");
+                int success = fetch_all_prices();
+                Serial.printf("[SCHEDULER] Price fetch: %d/%d successful\n", 
+                            success, config_get_num_symbols());
+                
+                // Mark data as fresh if at least one fetch succeeded
+                if (success > 0) {
+                    model_set_stale(false);
+                }
+            }
+            
+            // Fetch funding rates based on configured interval
+            if (now - last_funding_fetch >= config_get_funding_refresh_ms()) {
+                last_funding_fetch = now;
+                Serial.println("[SCHEDULER] Fetching funding rates...");
+                int success = fetch_all_funding();
+                Serial.printf("[SCHEDULER] Funding fetch: %d/%d successful\n",
+                            success, config_get_num_symbols());
+            }
+        } else {
+            Serial.println("[SCHEDULER] Wi-Fi disconnected, skipping fetch");
+        }
+        
+        // Yield to other tasks - check every second
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
 
 void scheduler_init() {
-    // TODO: Initialize task scheduler
+    Serial.println("[SCHEDULER] Initializing task scheduler...");
+    
+    // Create network task with reasonable stack size
+    // Priority 1 = lower than default (UI should have priority)
+    BaseType_t result = xTaskCreate(
+        net_task,
+        "net_task",
+        8192,  // 8KB stack
+        NULL,
+        1,     // Low priority (UI is higher)
+        &net_task_handle
+    );
+    
+    if (result != pdPASS) {
+        Serial.println("[SCHEDULER] ERROR: Failed to create net_task!");
+    } else {
+        Serial.println("[SCHEDULER] Net task created successfully");
+    }
+}
+
+void scheduler_stop() {
+    if (net_task_handle != NULL) {
+        vTaskDelete(net_task_handle);
+        net_task_handle = NULL;
+        Serial.println("[SCHEDULER] Net task stopped");
+    }
 }
