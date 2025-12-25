@@ -1,6 +1,7 @@
 #include "ui_bindings.h"
 #include "ui_screens.h"
 #include "../app/app_model.h"
+#include "../app/app_alerts.h"
 #include <lvgl.h>
 #include <math.h>
 
@@ -19,8 +20,9 @@ static struct {
     double spread_abs;
     double funding_rate;
     bool data_stale;
+    bool alert_active;
     bool initialized;
-} g_cache = { -1, false, 0, "", -1.0, -1.0, -999.0, -999.0, -999.0, true, false };
+} g_cache = { -1, false, 0, "", -1.0, -1.0, -999.0, -999.0, -999.0, true, false, false };
 
 // Epsilon for floating point comparison
 #define FLOAT_EPSILON 0.001
@@ -100,6 +102,22 @@ void ui_bindings_apply(const AppState& state) {
     }
     
     g_cache.data_stale = false;
+    
+    // === ALERT VISUAL INDICATOR (Task 9.1) ===
+    bool alert_active = alerts_is_active();
+    if (g_cache.alert_active != alert_active) {
+        if (g_widgets.lbl_symbol) {
+            if (alert_active) {
+                // Set red border/background to indicate alert
+                lv_obj_set_style_border_color(g_widgets.lbl_symbol, lv_color_hex(0xFF0000), 0);
+                lv_obj_set_style_border_width(g_widgets.lbl_symbol, 3, 0);
+            } else {
+                // Clear border when no alert
+                lv_obj_set_style_border_width(g_widgets.lbl_symbol, 0, 0);
+            }
+        }
+        g_cache.alert_active = alert_active;
+    }
     
     // === UPDATE BINANCE PRICE ===
     if (g_widgets.lbl_binance_price && sym.binance_quote.valid) {
