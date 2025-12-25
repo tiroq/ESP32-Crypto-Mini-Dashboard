@@ -47,11 +47,49 @@ struct BackoffState {
 static BackoffState price_backoff[3];    // One per symbol
 static BackoffState funding_backoff[3];  // One per symbol
 
+// Performance tracking for stability monitoring (Task 11.1)
+struct PerformanceMetrics {
+    unsigned long last_price_fetch_duration_ms;
+    unsigned long last_funding_fetch_duration_ms;
+    unsigned long last_stability_log_ms;
+    uint32_t min_free_heap;
+    
+    PerformanceMetrics() : last_price_fetch_duration_ms(0),
+                          last_funding_fetch_duration_ms(0),
+                          last_stability_log_ms(0),
+                          min_free_heap(0xFFFFFFFF) {}
+};
+
+static PerformanceMetrics perf_metrics;
+
+/**
+ * @brief Log stability metrics (Task 11.1)
+ * Called periodically to monitor system health
+ */
+static void log_stability_metrics() {
+    uint32_t free_heap = ESP.getFreeHeap();
+    int rssi = net_wifi_rssi();
+    
+    // Track minimum heap ever seen
+    if (free_heap < perf_metrics.min_free_heap) {
+        perf_metrics.min_free_heap = free_heap;
+    }
+    
+    Serial.println("========== STABILITY METRICS ==========");
+    Serial.printf("[STABILITY] Free heap: %u bytes (min: %u)\n", free_heap, perf_metrics.min_free_heap);
+    Serial.printf("[STABILITY] Wi-Fi RSSI: %d dBm\n", rssi);
+    Serial.printf("[STABILITY] Last price fetch: %lu ms\n", perf_metrics.last_price_fetch_duration_ms);
+    Serial.printf("[STABILITY] Last funding fetch: %lu ms\n", perf_metrics.last_funding_fetch_duration_ms);
+    Serial.printf("[STABILITY] Uptime: %lu seconds\n", millis() / 1000);
+    Serial.println("======================================");
+}
+
 /**
  * @brief Fetch and update spot prices for all symbols
  * @return Number of successful fetches
  */
 static int fetch_all_prices() {
+    unsigned long fetch_start = millis();
     const AppConfig& cfg = config_get();
     int success_count = 0;
     unsigned long now = millis();
