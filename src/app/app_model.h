@@ -36,8 +36,12 @@ struct SymbolState {
     double spread_pct;
     bool spread_valid;
     
+    // Timestamp for stale detection (Task 8.2)
+    unsigned long last_update_ms;
+    
     SymbolState() : symbol_name(""), binance_symbol(""), coinbase_product(""),
-                    spread_abs(0.0), spread_pct(0.0), spread_valid(false) {}
+                    spread_abs(0.0), spread_pct(0.0), spread_valid(false),
+                    last_update_ms(0) {}
 };
 
 struct AppState {

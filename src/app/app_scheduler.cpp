@@ -111,6 +111,11 @@ static int fetch_all_prices() {
             state.spread_valid = false;
         }
         
+        // Update timestamp if at least one quote is valid (Task 8.2)
+        if (binance_ok || coinbase_ok) {
+            state.last_update_ms = millis();
+        }
+        
         // Update model with fetched data
         model_update_symbol(i, state);
         
@@ -226,6 +231,30 @@ static void net_task(void* parameter) {
             }
         } else {
             Serial.println("[SCHEDULER] Wi-Fi disconnected, skipping fetch");
+        }
+        
+        // Stale data detection (Task 8.2)
+        // Check if any symbol data is older than STALE_MS threshold
+        AppState snapshot = model_snapshot();
+        bool any_stale = false;
+        uint32_t stale_threshold_ms = config_get_stale_ms();
+        
+        for (int i = 0; i < config_get_num_symbols(); i++) {
+            if (snapshot.symbols[i].last_update_ms == 0) {
+                // Never updated - consider stale
+                any_stale = true;
+            } else if ((now - snapshot.symbols[i].last_update_ms) > stale_threshold_ms) {
+                // Updated but too old
+                any_stale = true;
+                Serial.printf("[SCHEDULER] %s data is stale (age: %lu ms)\n",
+                             snapshot.symbols[i].symbol_name,
+                             now - snapshot.symbols[i].last_update_ms);
+            }
+        }
+        
+        if (any_stale && !snapshot.data_stale) {
+            Serial.println("[SCHEDULER] Marking data as STALE");
+            model_set_stale(true);
         }
         
         // Yield to other tasks - check every second
