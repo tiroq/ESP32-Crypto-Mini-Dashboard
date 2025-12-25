@@ -172,6 +172,9 @@ static int fetch_all_prices() {
         }
     }
     
+    // Track fetch duration (Task 11.1)
+    perf_metrics.last_price_fetch_duration_ms = millis() - fetch_start;
+    
     return success_count;
 }
 
@@ -180,6 +183,7 @@ static int fetch_all_prices() {
  * @return Number of successful fetches
  */
 static int fetch_all_funding() {
+    unsigned long fetch_start = millis();
     const AppConfig& cfg = config_get();
     int success_count = 0;
     unsigned long now = millis();
@@ -217,6 +221,9 @@ static int fetch_all_funding() {
         // Update model with funding data
         model_update_symbol(i, state);
     }
+    
+    // Track fetch duration (Task 11.1)
+    perf_metrics.last_funding_fetch_duration_ms = millis() - fetch_start;
     
     return success_count;
 }
