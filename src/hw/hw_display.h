@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 // Display hardware abstraction
-// TODO: Implement display initialization and management
+// Manages LVGL display driver initialization and TFT_eSPI integration
 
 bool hw_display_init();
 void hw_display_tick();
