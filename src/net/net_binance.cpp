@@ -4,8 +4,9 @@
 
 namespace net_binance {
 
-// Binance API base URL
+// Binance API base URLs
 static const char* BINANCE_API_BASE = "https://api.binance.com";
+static const char* BINANCE_FAPI_BASE = "https://fapi.binance.com";
 
 bool fetch_spot(const char* symbol, double* out_price) {
     if (!symbol || !out_price) {
@@ -67,8 +68,82 @@ bool fetch_spot(const char* symbol, double* out_price) {
 }
 
 bool fetch_funding(const char* symbol, double* out_rate) {
-    // TODO: Implement Binance funding rate fetch (Task 6.3)
-    return false;
+    if (!symbol || !out_rate) {
+        Serial.println("[BINANCE] ERROR: Invalid parameters for funding rate");
+        return false;
+    }
+    
+    // Build URL for futures API
+    char url[128];
+    snprintf(url, sizeof(url), "%s/fapi/v1/fundingRate?symbol=%s&limit=1", BINANCE_FAPI_BASE, symbol);
+    
+    Serial.printf("[BINANCE] Fetching funding rate for %s...\n", symbol);
+    
+    // Fetch data
+    String response;
+    if (!http_get(url, response, 10000)) {
+        Serial.println("[BINANCE] HTTP request failed");
+        return false;
+    }
+    
+    // Parse JSON response: [{"symbol":"BTCUSDT","fundingRate":"0.00010000","fundingTime":1609459200000}]
+    // Response is an array with most recent funding rate first
+    StaticJsonDocument<512> doc;
+    DeserializationError error = deserializeJson(doc, response);
+    
+    if (error) {
+        Serial.printf("[BINANCE] JSON parse error: %s\n", error.c_str());
+        return false;
+    }
+    
+    // Check if response is an array
+    if (!doc.is<JsonArray>()) {
+        Serial.println("[BINANCE] Response is not an array");
+        return false;
+    }
+    
+    JsonArray array = doc.as<JsonArray>();
+    
+    // Check if array has at least one element
+    if (array.size() == 0) {
+        Serial.println("[BINANCE] Empty funding rate array");
+        return false;
+    }
+    
+    // Get first element
+    JsonObject item = array[0];
+    
+    // Validate required fields
+    if (!item.containsKey("symbol") || !item.containsKey("fundingRate")) {
+        Serial.println("[BINANCE] Missing required fields in funding rate response");
+        return false;
+    }
+    
+    // Verify symbol matches
+    const char* resp_symbol = item["symbol"];
+    if (strcmp(resp_symbol, symbol) != 0) {
+        Serial.printf("[BINANCE] Symbol mismatch: expected %s, got %s\n", symbol, resp_symbol);
+        return false;
+    }
+    
+    // Extract funding rate (comes as string)
+    const char* rate_str = item["fundingRate"];
+    if (!rate_str) {
+        Serial.println("[BINANCE] Funding rate field is null");
+        return false;
+    }
+    
+    *out_rate = atof(rate_str);
+    
+    // Funding rate can be negative, so we don't check for <= 0
+    // Just validate it's a reasonable value (typically between -1% and +1%)
+    if (*out_rate < -0.01 || *out_rate > 0.01) {
+        Serial.printf("[BINANCE] WARNING: Unusual funding rate: %s (%.6f)\n", rate_str, *out_rate);
+        // Still return true as this is a valid (if unusual) rate
+    }
+    
+    Serial.printf("[BINANCE] %s funding rate: %.4f%% (%s)\n", symbol, *out_rate * 100.0, rate_str);
+    return true;
 }
 
 }

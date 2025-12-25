@@ -90,6 +90,15 @@ void loop() {
             Serial.println("[MAIN] Coinbase test FAILED");
         }
         
+        // Test Binance funding rate (Task 6.3)
+        Serial.println("\n[MAIN] Testing Binance funding rate...");
+        double btc_funding = 0.0;
+        if (net_binance::fetch_funding("BTCUSDT", &btc_funding)) {
+            Serial.printf("[MAIN] Funding rate test SUCCESS: %.4f%% (%.6f)\n", btc_funding * 100.0, btc_funding);
+        } else {
+            Serial.println("[MAIN] Funding rate test FAILED");
+        }
+        
         Serial.println();
     }
     
