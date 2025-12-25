@@ -1,25 +1,64 @@
 #include "ui_screens.h"
+#include "../app/app_model.h"
+
+// Screen and widget references
+static lv_obj_t* screen_dashboard = NULL;
+static lv_obj_t* screen_alerts = NULL;
+static lv_obj_t* screen_settings = NULL;
+static lv_obj_t* lbl_symbol = NULL;
 
 // Button event handlers
 static void btn_prev_clicked(lv_event_t* e) {
     Serial.println("[UI] Prev button clicked");
+    int current = model_get_selected();
+    int next = (current - 1 + 3) % 3;  // Cycle: 0->2, 2->1, 1->0
+    model_set_selected(next);
+    
+    // Update symbol label
+    if (lbl_symbol) {
+        lv_label_set_text(lbl_symbol, model_get_symbol_name(next));
+    }
 }
 
 static void btn_next_clicked(lv_event_t* e) {
     Serial.println("[UI] Next button clicked");
+    int current = model_get_selected();
+    int next = (current + 1) % 3;  // Cycle: 0->1, 1->2, 2->0
+    model_set_selected(next);
+    
+    // Update symbol label
+    if (lbl_symbol) {
+        lv_label_set_text(lbl_symbol, model_get_symbol_name(next));
+    }
 }
 
 static void btn_alerts_clicked(lv_event_t* e) {
-    Serial.println("[UI] Alerts button clicked");
+    Serial.println("[UI] Alerts button clicked - switching to Alerts screen");
+    if (screen_alerts) {
+        lv_scr_load(screen_alerts);
+    }
 }
 
 static void btn_settings_clicked(lv_event_t* e) {
-    Serial.println("[UI] Settings button clicked");
+    Serial.println("[UI] Settings button clicked - switching to Settings screen");
+    if (screen_settings) {
+        lv_scr_load(screen_settings);
+    }
+}
+
+static void btn_back_clicked(lv_event_t* e) {
+    Serial.println("[UI] Back button clicked - returning to Dashboard");
+    if (screen_dashboard) {
+        lv_scr_load(screen_dashboard);
+    }
 }
 
 lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_t* screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), 0);
+    
+    // Store screen reference
+    screen_dashboard = screen;
 
     // ===== HEADER SECTION (top 30px) =====
     lv_obj_t* header = lv_obj_create(screen);
@@ -30,9 +69,9 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_pad_all(header, 4, 0);
     lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Symbol label (left)
-    lv_obj_t* lbl_symbol = lv_label_create(header);
-    lv_label_set_text(lbl_symbol, "BTC/USDT");
+    // Symbol label (left) - store reference for updates
+    lbl_symbol = lv_label_create(header);
+    lv_label_set_text(lbl_symbol, model_get_symbol_name(model_get_selected()));
     lv_obj_set_style_text_color(lbl_symbol, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_text_font(lbl_symbol, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_symbol, 4, 4);
@@ -187,10 +226,22 @@ lv_obj_t* ui_screens_create_alerts() {
     lv_obj_t* screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), 0);
     
+    // Store screen reference
+    screen_alerts = screen;
+    
     lv_obj_t* label = lv_label_create(screen);
     lv_label_set_text(label, "Alerts Screen\nTODO");
     lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
     lv_obj_center(label);
+    
+    // Back button
+    lv_obj_t* btn_back = lv_btn_create(screen);
+    lv_obj_set_size(btn_back, 100, 50);
+    lv_obj_align(btn_back, LV_ALIGN_BOTTOM_MID, 0, -10);
+    lv_obj_add_event_cb(btn_back, btn_back_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_back = lv_label_create(btn_back);
+    lv_label_set_text(lbl_back, "Back");
+    lv_obj_center(lbl_back);
     
     Serial.println("[UI] Alerts screen created");
     return screen;
@@ -200,10 +251,22 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), 0);
     
+    // Store screen reference
+    screen_settings = screen;
+    
     lv_obj_t* label = lv_label_create(screen);
     lv_label_set_text(label, "Settings Screen\nTODO");
     lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
     lv_obj_center(label);
+    
+    // Back button
+    lv_obj_t* btn_back = lv_btn_create(screen);
+    lv_obj_set_size(btn_back, 100, 50);
+    lv_obj_align(btn_back, LV_ALIGN_BOTTOM_MID, 0, -10);
+    lv_obj_add_event_cb(btn_back, btn_back_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_back = lv_label_create(btn_back);
+    lv_label_set_text(lbl_back, "Back");
+    lv_obj_center(lbl_back);
     
     Serial.println("[UI] Settings screen created");
     return screen;

@@ -1,11 +1,19 @@
 #include "ui_root.h"
 #include "ui_screens.h"
+#include "../app/app_model.h"
 
 void ui_root_init() {
     Serial.println("[UI] Initializing UI root...");
     
-    // Create Dashboard screen and load it
+    // Initialize model
+    model_init();
+    
+    // Create all screens
     lv_obj_t* dashboard = ui_screens_create_dashboard();
+    ui_screens_create_alerts();    // Creates and stores screen_alerts
+    ui_screens_create_settings();  // Creates and stores screen_settings
+    
+    // Load Dashboard
     lv_scr_load(dashboard);
     
     Serial.println("[UI] Dashboard loaded");
