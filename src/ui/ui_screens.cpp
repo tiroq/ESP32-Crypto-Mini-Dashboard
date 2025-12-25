@@ -5,7 +5,16 @@
 static lv_obj_t* screen_dashboard = NULL;
 static lv_obj_t* screen_alerts = NULL;
 static lv_obj_t* screen_settings = NULL;
+
+// Dashboard widget references (exposed for ui_bindings)
 static lv_obj_t* lbl_symbol = NULL;
+static lv_obj_t* lbl_wifi = NULL;
+static lv_obj_t* lbl_time = NULL;
+static lv_obj_t* lbl_binance_price = NULL;
+static lv_obj_t* lbl_coinbase_price = NULL;
+static lv_obj_t* lbl_spread_pct = NULL;
+static lv_obj_t* lbl_spread_abs = NULL;
+static lv_obj_t* lbl_funding = NULL;
 
 // Button event handlers
 static void btn_prev_clicked(lv_event_t* e) {
@@ -77,14 +86,14 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_pos(lbl_symbol, 4, 4);
 
     // WiFi status (center)
-    lv_obj_t* lbl_wifi = lv_label_create(header);
+    lbl_wifi = lv_label_create(header);
     lv_label_set_text(lbl_wifi, "WiFi: --");
     lv_obj_set_style_text_color(lbl_wifi, lv_color_hex(0x888888), 0);
     lv_obj_set_style_text_font(lbl_wifi, &lv_font_montserrat_14, 0);
     lv_obj_align(lbl_wifi, LV_ALIGN_TOP_MID, 0, 4);
 
     // Time label (right)
-    lv_obj_t* lbl_time = lv_label_create(header);
+    lbl_time = lv_label_create(header);
     lv_label_set_text(lbl_time, "--:--");
     lv_obj_set_style_text_color(lbl_time, lv_color_hex(0x888888), 0);
     lv_obj_set_style_text_font(lbl_time, &lv_font_montserrat_14, 0);
@@ -106,7 +115,7 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_text_font(lbl_binance_title, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_binance_title, 8, 4);
 
-    lv_obj_t* lbl_binance_price = lv_label_create(data_container);
+    lbl_binance_price = lv_label_create(data_container);
     lv_label_set_text(lbl_binance_price, "$--,---.--");
     lv_obj_set_style_text_color(lbl_binance_price, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_text_font(lbl_binance_price, &lv_font_montserrat_24, 0);
@@ -119,7 +128,7 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_text_font(lbl_coinbase_title, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_coinbase_title, 170, 4);
 
-    lv_obj_t* lbl_coinbase_price = lv_label_create(data_container);
+    lbl_coinbase_price = lv_label_create(data_container);
     lv_label_set_text(lbl_coinbase_price, "$--,---.--");
     lv_obj_set_style_text_color(lbl_coinbase_price, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_text_font(lbl_coinbase_price, &lv_font_montserrat_24, 0);
@@ -132,7 +141,7 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_text_font(lbl_spread_pct_title, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_spread_pct_title, 8, 60);
 
-    lv_obj_t* lbl_spread_pct = lv_label_create(data_container);
+    lbl_spread_pct = lv_label_create(data_container);
     lv_label_set_text(lbl_spread_pct, "-.---%");
     lv_obj_set_style_text_color(lbl_spread_pct, lv_color_hex(0x00FF00), 0);
     lv_obj_set_style_text_font(lbl_spread_pct, &lv_font_montserrat_14, 0);
@@ -145,7 +154,7 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_text_font(lbl_spread_abs_title, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_spread_abs_title, 120, 60);
 
-    lv_obj_t* lbl_spread_abs = lv_label_create(data_container);
+    lbl_spread_abs = lv_label_create(data_container);
     lv_label_set_text(lbl_spread_abs, "$-.--");
     lv_obj_set_style_text_color(lbl_spread_abs, lv_color_hex(0x00FF00), 0);
     lv_obj_set_style_text_font(lbl_spread_abs, &lv_font_montserrat_14, 0);
@@ -158,7 +167,7 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_text_font(lbl_funding_title, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_funding_title, 8, 106);
 
-    lv_obj_t* lbl_funding = lv_label_create(data_container);
+    lbl_funding = lv_label_create(data_container);
     lv_label_set_text(lbl_funding, "-.-----%");
     lv_obj_set_style_text_color(lbl_funding, lv_color_hex(0xFFFF00), 0);
     lv_obj_set_style_text_font(lbl_funding, &lv_font_montserrat_14, 0);
@@ -270,4 +279,17 @@ lv_obj_t* ui_screens_create_settings() {
     
     Serial.println("[UI] Settings screen created");
     return screen;
+}
+
+DashboardWidgets ui_screens_get_dashboard_widgets() {
+    DashboardWidgets widgets;
+    widgets.lbl_symbol = lbl_symbol;
+    widgets.lbl_wifi = lbl_wifi;
+    widgets.lbl_time = lbl_time;
+    widgets.lbl_binance_price = lbl_binance_price;
+    widgets.lbl_coinbase_price = lbl_coinbase_price;
+    widgets.lbl_spread_pct = lbl_spread_pct;
+    widgets.lbl_spread_abs = lbl_spread_abs;
+    widgets.lbl_funding = lbl_funding;
+    return widgets;
 }
