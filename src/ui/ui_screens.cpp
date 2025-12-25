@@ -285,7 +285,7 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_title = lv_label_create(screen);
     lv_label_set_text(lbl_title, "Settings");
     lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_14, 0);
     lv_obj_align(lbl_title, LV_ALIGN_TOP_MID, 0, 10);
     
     int y_pos = 45;
