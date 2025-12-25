@@ -4,13 +4,14 @@
 - [x] **No funding displayed** - Fixed HTTP parser to handle "HTTP/1.1 200" without "OK"
 
 ## 🟠 High Priority (P1)
-- [ ] **Redesign Settings UI**
-  - Add "Saved!" confirmation popup
-  - Improve slider labels with visible units
-  - Add "Reset to Defaults" button
-  - Group related settings
-  - Better visual hierarchy
-- [ ] **Update Settings tab design** (duplicate of above)
+- [x] **Redesign Settings UI**
+  - ✅ Added "Saved!" confirmation popup (green for success, red for error)
+  - ✅ Added "Reset to Defaults" button (orange, restores factory settings)
+  - ✅ Added section headers ("Alert Thresholds" / "Refresh Intervals" in gold)
+  - ✅ Improved spacing and visual hierarchy
+  - ✅ Better color coding (green for alerts, cyan for intervals)
+  - ✅ Clearer labels ("Spread Alert Threshold", "Price Update Rate", etc.)
+  - ✅ Animated slider changes on reset
 
 ## 🟡 Medium Priority (P2)
 - [ ] **Redesign skin in line with Binance colors**
