@@ -310,14 +310,13 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_add_event_cb(btn_reset, settings_reset_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_reset = lv_label_create(btn_reset);
     lv_label_set_text(lbl_reset, "Reset");
-    lv_obj_set_style_text_font(lbl_reset, &lv_font_montserrat_12, 0);
     lv_obj_center(lbl_reset);
     
     // Title
     lv_obj_t* lbl_title = lv_label_create(screen);
     lv_label_set_text(lbl_title, "Settings");
     lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_title, 115, 55);
     
     int y_pos = 85;
@@ -327,7 +326,6 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_section1 = lv_label_create(screen);
     lv_label_set_text(lbl_section1, "Alert Thresholds");
     lv_obj_set_style_text_color(lbl_section1, lv_color_hex(0xFFD700), 0);
-    lv_obj_set_style_text_font(lbl_section1, &lv_font_montserrat_12, 0);
     lv_obj_set_pos(lbl_section1, 10, y_pos);
     
     y_pos += 20;
@@ -336,7 +334,6 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_spread = lv_label_create(screen);
     lv_label_set_text(lbl_spread, "Spread Alert Threshold");
     lv_obj_set_style_text_color(lbl_spread, lv_color_hex(0xCCCCCC), 0);
-    lv_obj_set_style_text_font(lbl_spread, &lv_font_montserrat_12, 0);
     lv_obj_set_pos(lbl_spread, 15, y_pos);
     
     lbl_spread_value = lv_label_create(screen);
@@ -357,7 +354,6 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_funding = lv_label_create(screen);
     lv_label_set_text(lbl_funding, "Funding Rate Alert");
     lv_obj_set_style_text_color(lbl_funding, lv_color_hex(0xCCCCCC), 0);
-    lv_obj_set_style_text_font(lbl_funding, &lv_font_montserrat_12, 0);
     lv_obj_set_pos(lbl_funding, 15, y_pos);
     
     lbl_funding_value = lv_label_create(screen);
@@ -378,7 +374,6 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_section2 = lv_label_create(screen);
     lv_label_set_text(lbl_section2, "Refresh Intervals");
     lv_obj_set_style_text_color(lbl_section2, lv_color_hex(0xFFD700), 0);
-    lv_obj_set_style_text_font(lbl_section2, &lv_font_montserrat_12, 0);
     lv_obj_set_pos(lbl_section2, 10, y_pos);
     
     y_pos += 20;
@@ -387,7 +382,6 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_price_refresh = lv_label_create(screen);
     lv_label_set_text(lbl_price_refresh, "Price Update Rate");
     lv_obj_set_style_text_color(lbl_price_refresh, lv_color_hex(0xCCCCCC), 0);
-    lv_obj_set_style_text_font(lbl_price_refresh, &lv_font_montserrat_12, 0);
     lv_obj_set_pos(lbl_price_refresh, 15, y_pos);
     
     lbl_price_refresh_value = lv_label_create(screen);
@@ -578,7 +572,7 @@ static void settings_reset_clicked(lv_event_t* e) {
     
     lv_obj_t* lbl_popup = lv_label_create(popup);
     lv_label_set_text(lbl_popup, "Reset!");
-    lv_obj_set_style_text_font(lbl_popup, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(lbl_popup, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_color(lbl_popup, lv_color_hex(0xFFFFFF), 0);
     lv_obj_center(lbl_popup);
     
