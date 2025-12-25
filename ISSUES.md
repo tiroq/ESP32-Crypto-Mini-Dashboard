@@ -1,18 +1,80 @@
-[ ] No funding displayed
-[ ] Redesign Settings
-[ ] Add OTA updates
-[ ] Redisign skin in line with binance colors
-[ ] Add more exchanges
-[ ] Add more coins
-[ ] Update Settings tab design
-[ ] Optimize performance and reduce latency
-[ ] Add more detailed documentation
-[ ] Implement user authentication for settings
-[ ] Add support for different languages (localization)
-[ ] Integrate with additional APIs for more data sources
-[ ] Enhance UI/UX with animations and transitions
-[ ] Implement dark mode for the display
-[ ] Add historical data charts for price trends
-[ ] Improve power management for battery-operated setups
-[ ] Add alerts/notifications for significant price changes
-[ ] Implement a web interface for remote monitoring and configuration
+# ESP32 Crypto Mini Dashboard - Issues & Features
+
+## 🔴 Critical (P0)
+- [x] **No funding displayed** - Fixed HTTP parser to handle "HTTP/1.1 200" without "OK"
+
+## 🟠 High Priority (P1)
+- [ ] **Redesign Settings UI**
+  - Add "Saved!" confirmation popup
+  - Improve slider labels with visible units
+  - Add "Reset to Defaults" button
+  - Group related settings
+  - Better visual hierarchy
+- [ ] **Update Settings tab design** (duplicate of above)
+
+## 🟡 Medium Priority (P2)
+- [ ] **Redesign skin in line with Binance colors**
+  - Yellow/gold accents
+  - Dark theme consistency
+  - Professional crypto exchange aesthetic
+- [ ] **Optimize performance and reduce latency**
+  - Reduce HTTP request overhead
+  - Optimize LVGL rendering
+  - Improve task scheduling
+- [ ] **Add more coins**
+  - Support 5-10 symbols
+  - Configurable watchlist
+- [ ] **Add more exchanges**
+  - Kraken, Coinbase Pro
+  - Exchange selection per symbol
+
+## 🟢 Low Priority (P3)
+- [ ] **Add historical data charts for price trends**
+  - Requires significant flash space
+  - Line charts for price history
+- [ ] **Add alerts/notifications for significant price changes**
+  - Threshold-based alerts
+  - Visual/audio indicators
+- [ ] **Enhance UI/UX with animations and transitions**
+  - Smooth screen transitions
+  - Loading animations
+- [ ] **Add more detailed documentation**
+  - User guide
+  - Hardware setup guide
+  - API documentation
+
+## ⚪ Future/Research (P4)
+- [ ] **Add OTA updates**
+  - Requires ~100KB flash space
+  - Web-based firmware upload
+- [ ] **Implement a web interface for remote monitoring and configuration**
+  - Requires ~150KB+ flash space
+  - WebSocket real-time updates
+- [ ] **Add support for different languages (localization)**
+  - Requires ~50-100KB flash space
+  - Multi-language strings
+- [ ] **Integrate with additional APIs for more data sources**
+  - News feeds
+  - Social sentiment
+- [ ] **Implement dark mode for the display**
+  - Already dark, but add themes
+- [ ] **Improve power management for battery-operated setups**
+  - Sleep modes
+  - Configurable refresh rates
+- [ ] **Implement user authentication for settings**
+  - PIN/password protection
+  - Secure settings storage
+
+---
+
+## ⚠️ Flash Space Constraint
+**Current**: 89.9% used (1,178,941 / 1,310,720 bytes)  
+**Available**: ~132KB remaining
+
+**Before implementing large features (OTA, web interface, localization):**
+1. Remove debug Serial.printf statements (~10-20KB)
+2. Optimize LVGL fonts (~20-30KB)
+3. Enable aggressive compiler optimization (~10-15KB)
+4. Review unused library code (~5-10KB)
+
+**Target**: Free up 50-100KB to enable P4 features
