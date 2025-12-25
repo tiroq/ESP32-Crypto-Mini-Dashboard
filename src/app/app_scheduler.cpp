@@ -7,6 +7,7 @@
 #include "../net/net_binance.h"
 #include "../net/net_coinbase.h"
 #include "../hw/hw_alert.h"
+#include "../hw/hw_storage.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -271,6 +272,13 @@ static void net_task(void* parameter) {
 
 void scheduler_init() {
     Serial.println("[SCHEDULER] Initializing task scheduler...");
+    
+    // Initialize storage subsystem (Task 10.1)
+    hw_storage_init();
+    
+    // Load configuration from storage (Task 10.1)
+    // If no saved config exists, will fall back to defaults already set by config_init()
+    config_load();
     
     // Initialize hardware alert module (Task 9.1)
     hw_alert_init();
