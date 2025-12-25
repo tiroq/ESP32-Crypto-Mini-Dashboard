@@ -1,5 +1,6 @@
 #include "ui_root.h"
 #include "ui_screens.h"
+#include "ui_bindings.h"
 #include "../app/app_model.h"
 
 void ui_root_init() {
@@ -16,5 +17,8 @@ void ui_root_init() {
     // Load Dashboard
     lv_scr_load(dashboard);
     
-    Serial.println("[UI] Dashboard loaded");
+    // Initialize bindings (starts periodic update timer)
+    ui_bindings_init();
+    
+    Serial.println("[UI] Dashboard loaded and bindings initialized");
 }
