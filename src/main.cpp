@@ -58,11 +58,11 @@ void loop() {
     // Ensure Wi-Fi is connected (non-blocking, rate-limited)
     net_wifi_ensure_connected();
     
+    // Update model with Wi-Fi status every loop iteration
+    model_update_wifi(net_wifi_is_connected(), net_wifi_rssi());
+    
     // Handle LVGL display tasks - KEEP UI LOOP CLEAN, NO NETWORK CALLS
     // Network fetching happens in scheduler net_task
-    }
-    
-    // Handle LVGL display tasks
     hw_display_tick();
     delay(5);
 }
