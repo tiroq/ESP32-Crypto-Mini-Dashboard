@@ -281,14 +281,33 @@ lv_obj_t* ui_screens_create_settings() {
     // Store screen reference
     screen_settings = screen;
     
+    // Back button (top left)
+    lv_obj_t* btn_back = lv_btn_create(screen);
+    lv_obj_set_size(btn_back, 100, 45);
+    lv_obj_set_pos(btn_back, 10, 5);
+    lv_obj_add_event_cb(btn_back, btn_back_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_back = lv_label_create(btn_back);
+    lv_label_set_text(lbl_back, "Back");
+    lv_obj_center(lbl_back);
+    
+    // Save button (top right)
+    lv_obj_t* btn_save = lv_btn_create(screen);
+    lv_obj_set_size(btn_save, 100, 45);
+    lv_obj_set_pos(btn_save, 210, 5);
+    lv_obj_set_style_bg_color(btn_save, lv_color_hex(0x00AA00), 0);
+    lv_obj_add_event_cb(btn_save, settings_save_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_save = lv_label_create(btn_save);
+    lv_label_set_text(lbl_save, "SAVE");
+    lv_obj_center(lbl_save);
+    
     // Title
     lv_obj_t* lbl_title = lv_label_create(screen);
     lv_label_set_text(lbl_title, "Settings");
     lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_14, 0);
-    lv_obj_align(lbl_title, LV_ALIGN_TOP_MID, 0, 10);
+    lv_obj_set_pos(lbl_title, 120, 60);
     
-    int y_pos = 45;
+    int y_pos = 90;
     int row_height = 45;
     
     // Spread alert threshold (0.1% to 2.0%, step 0.1%)
@@ -370,25 +389,6 @@ lv_obj_t* ui_screens_create_settings() {
     settings_funding_changed(NULL);
     settings_price_refresh_changed(NULL);
     settings_funding_refresh_changed(NULL);
-    
-    // Save button
-    lv_obj_t* btn_save = lv_btn_create(screen);
-    lv_obj_set_size(btn_save, 120, 50);
-    lv_obj_align(btn_save, LV_ALIGN_BOTTOM_LEFT, 30, -10);
-    lv_obj_set_style_bg_color(btn_save, lv_color_hex(0x00AA00), 0);
-    lv_obj_add_event_cb(btn_save, settings_save_clicked, LV_EVENT_CLICKED, NULL);
-    lv_obj_t* lbl_save = lv_label_create(btn_save);
-    lv_label_set_text(lbl_save, "SAVE");
-    lv_obj_center(lbl_save);
-    
-    // Back button
-    lv_obj_t* btn_back = lv_btn_create(screen);
-    lv_obj_set_size(btn_back, 120, 50);
-    lv_obj_align(btn_back, LV_ALIGN_BOTTOM_RIGHT, -30, -10);
-    lv_obj_add_event_cb(btn_back, btn_back_clicked, LV_EVENT_CLICKED, NULL);
-    lv_obj_t* lbl_back = lv_label_create(btn_back);
-    lv_label_set_text(lbl_back, "Back");
-    lv_obj_center(lbl_back);
     
     Serial.println("[UI] Settings screen created with controls");
     return screen;
