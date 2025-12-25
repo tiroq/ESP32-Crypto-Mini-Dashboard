@@ -2,14 +2,17 @@
 #include "app_config.h"
 #include "app_model.h"
 #include "app_math.h"
+#include "app_alerts.h"
 #include "../net/net_wifi.h"
 #include "../net/net_binance.h"
 #include "../net/net_coinbase.h"
+#include "../hw/hw_alert.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 // Task handles
 static TaskHandle_t net_task_handle = NULL;
+static TaskHandle_t alert_task_handle = NULL;
 
 // Backoff configuration
 static const uint32_t BACKOFF_MIN_MS = 1000;      // 1 second minimum backoff
@@ -269,6 +272,12 @@ static void net_task(void* parameter) {
 void scheduler_init() {
     Serial.println("[SCHEDULER] Initializing task scheduler...");
     
+    // Initialize hardware alert module (Task 9.1)
+    hw_alert_init();
+    
+    // Initialize alert engine (Task 9.1)
+    alerts_init();
+    
     // Create network task with reasonable stack size
     // Priority 1 = lower than default (UI should have priority)
     BaseType_t result = xTaskCreate(
@@ -285,6 +294,23 @@ void scheduler_init() {
     } else {
         Serial.println("[SCHEDULER] Net task created successfully");
     }
+    
+    // Create alert monitoring task (Task 9.1)
+    // Priority 1 = same as net_task
+    result = xTaskCreate(
+        alert_task,
+        "alert_task",
+        4096,  // 4KB stack (less than net_task, no HTTP)
+        NULL,
+        1,     // Low priority
+        &alert_task_handle
+    );
+    
+    if (result != pdPASS) {
+        Serial.println("[SCHEDULER] ERROR: Failed to create alert_task!");
+    } else {
+        Serial.println("[SCHEDULER] Alert task created successfully");
+    }
 }
 
 void scheduler_stop() {
@@ -292,5 +318,11 @@ void scheduler_stop() {
         vTaskDelete(net_task_handle);
         net_task_handle = NULL;
         Serial.println("[SCHEDULER] Net task stopped");
+    }
+    
+    if (alert_task_handle != NULL) {
+        vTaskDelete(alert_task_handle);
+        alert_task_handle = NULL;
+        Serial.println("[SCHEDULER] Alert task stopped");
     }
 }
