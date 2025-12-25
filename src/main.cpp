@@ -3,8 +3,9 @@
 #include <TFT_eSPI.h>
 
 // Display and LVGL configuration
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
+// ESP32-2432S028: 240x320 portrait, rotated to 320x240 landscape
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
 #define LVGL_BUFFER_SIZE (SCREEN_WIDTH * 40)
 
 TFT_eSPI tft = TFT_eSPI();
