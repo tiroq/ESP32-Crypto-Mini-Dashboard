@@ -8,6 +8,7 @@
 #include "net/net_wifi.h"
 #include "net/net_http.h"
 #include "net/net_binance.h"
+#include "net/net_coinbase.h"
 
 // Test flag to run HTTP test once
 static bool http_test_done = false;
@@ -73,6 +74,20 @@ void loop() {
             Serial.printf("[MAIN] Binance test SUCCESS: BTC price = $%.2f\n", btc_price);
         } else {
             Serial.println("[MAIN] Binance test FAILED");
+        }
+        
+        // Test Coinbase spot price (Task 6.2)
+        Serial.println("\n[MAIN] Testing Coinbase spot price...");
+        double btc_price_cb = 0.0;
+        if (net_coinbase::fetch_spot("BTC-USD", &btc_price_cb)) {
+            Serial.printf("[MAIN] Coinbase test SUCCESS: BTC price = $%.2f\n", btc_price_cb);
+            
+            // Show spread between exchanges
+            double spread_abs = btc_price_cb - btc_price;
+            double spread_pct = (spread_abs / btc_price) * 100.0;
+            Serial.printf("[MAIN] Spread: $%.2f (%.3f%%)\n", spread_abs, spread_pct);
+        } else {
+            Serial.println("[MAIN] Coinbase test FAILED");
         }
         
         Serial.println();
