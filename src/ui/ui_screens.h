@@ -24,6 +24,7 @@ lv_obj_t* ui_screens_create_dashboard();
 // Create placeholder screens
 lv_obj_t* ui_screens_create_alerts();
 lv_obj_t* ui_screens_create_settings();
+lv_obj_t* ui_screens_create_chart();
 
 // Get widget references for data binding
 DashboardWidgets ui_screens_get_dashboard_widgets();

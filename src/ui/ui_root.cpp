@@ -13,6 +13,7 @@ void ui_root_init() {
     lv_obj_t* dashboard = ui_screens_create_dashboard();
     ui_screens_create_alerts();    // Creates and stores screen_alerts
     ui_screens_create_settings();  // Creates and stores screen_settings
+    ui_screens_create_chart();     // Creates and stores screen_chart
     
     // Load Dashboard
     lv_scr_load(dashboard);

@@ -6,6 +6,7 @@
 static lv_obj_t* screen_dashboard = NULL;
 static lv_obj_t* screen_alerts = NULL;
 static lv_obj_t* screen_settings = NULL;
+static lv_obj_t* screen_chart = NULL;
 
 // Dashboard widget references (exposed for ui_bindings)
 static lv_obj_t* lbl_symbol = NULL;
@@ -46,6 +47,13 @@ static void btn_alerts_clicked(lv_event_t* e) {
     Serial.println("[UI] Alerts button clicked - switching to Alerts screen");
     if (screen_alerts) {
         lv_scr_load(screen_alerts);
+    }
+}
+
+static void btn_chart_clicked(lv_event_t* e) {
+    Serial.println("[UI] Chart button clicked - switching to Chart screen");
+    if (screen_chart) {
+        lv_scr_load(screen_chart);
     }
 }
 
@@ -208,15 +216,15 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_label_set_text(lbl_next, "Next");
     lv_obj_center(lbl_next);
 
-    // Alerts button
-    lv_obj_t* btn_alerts = lv_btn_create(footer);
-    lv_obj_set_size(btn_alerts, btn_width, btn_height);
-    lv_obj_set_pos(btn_alerts, 2 + (btn_width + btn_gap) * 2, 4);
-    lv_obj_set_style_bg_color(btn_alerts, lv_color_hex(0x2B3139), 0);
-    lv_obj_add_event_cb(btn_alerts, btn_alerts_clicked, LV_EVENT_CLICKED, NULL);
-    lv_obj_t* lbl_alerts = lv_label_create(btn_alerts);
-    lv_label_set_text(lbl_alerts, "Alerts");
-    lv_obj_center(lbl_alerts);
+    // Chart button
+    lv_obj_t* btn_chart = lv_btn_create(footer);
+    lv_obj_set_size(btn_chart, btn_width, btn_height);
+    lv_obj_set_pos(btn_chart, 2 + (btn_width + btn_gap) * 2, 4);
+    lv_obj_set_style_bg_color(btn_chart, lv_color_hex(0x2B3139), 0);
+    lv_obj_add_event_cb(btn_chart, btn_chart_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_chart = lv_label_create(btn_chart);
+    lv_label_set_text(lbl_chart, "Chart");
+    lv_obj_center(lbl_chart);
 
     // Settings button
     lv_obj_t* btn_settings = lv_btn_create(footer);
@@ -589,4 +597,101 @@ DashboardWidgets ui_screens_get_dashboard_widgets() {
     widgets.lbl_spread_abs = lbl_spread_abs;
     widgets.lbl_funding = lbl_funding;
     return widgets;
+}
+
+// Chart screen with price history
+lv_obj_t* ui_screens_create_chart() {
+    lv_obj_t* screen = lv_obj_create(NULL);
+    lv_obj_set_style_bg_color(screen, lv_color_hex(0x181A20), 0);
+    
+    // Store screen reference
+    screen_chart = screen;
+    
+    // Back button
+    lv_obj_t* btn_back = lv_btn_create(screen);
+    lv_obj_set_size(btn_back, 80, 40);
+    lv_obj_set_pos(btn_back, 5, 5);
+    lv_obj_set_style_bg_color(btn_back, lv_color_hex(0x2B3139), 0);
+    lv_obj_add_event_cb(btn_back, btn_back_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_back = lv_label_create(btn_back);
+    lv_label_set_text(lbl_back, "Back");
+    lv_obj_center(lbl_back);
+    
+    // Title - get current symbol
+    AppState state = model_snapshot();
+    const char* symbol = state.symbols[state.selected_symbol_idx].symbol_name;
+    
+    lv_obj_t* lbl_title = lv_label_create(screen);
+    char title[32];
+    snprintf(title, sizeof(title), "%s Price History", symbol);
+    lv_label_set_text(lbl_title, title);
+    lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xF0B90B), 0);
+    lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_14, 0);
+    lv_obj_set_pos(lbl_title, 95, 15);
+    
+    // Create chart
+    lv_obj_t* chart = lv_chart_create(screen);
+    lv_obj_set_size(chart, 310, 240);
+    lv_obj_set_pos(chart, 5, 55);
+    lv_obj_set_style_bg_color(chart, lv_color_hex(0x0B0E11), 0);
+    lv_obj_set_style_border_color(chart, lv_color_hex(0x2B3139), 0);
+    lv_obj_set_style_border_width(chart, 2, 0);
+    
+    // Configure chart
+    lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(chart, PRICE_HISTORY_SIZE);
+    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100000); // Will be auto-scaled
+    
+    // Add series for price data
+    lv_chart_series_t* series = lv_chart_add_series(chart, lv_color_hex(0xF0B90B), LV_CHART_AXIS_PRIMARY_Y);
+    
+    // Populate with history data
+    const SymbolState& sym = state.symbols[state.selected_symbol_idx];
+    if (sym.history_count > 0) {
+        // Find min/max for auto-scaling
+        double min_price = sym.price_history[0];
+        double max_price = sym.price_history[0];
+        
+        for (int i = 0; i < sym.history_count; i++) {
+            if (sym.price_history[i] < min_price) min_price = sym.price_history[i];
+            if (sym.price_history[i] > max_price) max_price = sym.price_history[i];
+        }
+        
+        // Add 5% padding
+        double range = max_price - min_price;
+        min_price -= range * 0.05;
+        max_price += range * 0.05;
+        
+        lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, (int)min_price, (int)max_price);
+        
+        // Populate data points
+        for (int i = 0; i < PRICE_HISTORY_SIZE; i++) {
+            if (i < sym.history_count) {
+                int idx = (sym.history_head - sym.history_count + i + PRICE_HISTORY_SIZE) % PRICE_HISTORY_SIZE;
+                series->y_points[i] = (lv_coord_t)sym.price_history[idx];
+            } else {
+                series->y_points[i] = LV_CHART_POINT_NONE;
+            }
+        }
+        
+        lv_chart_refresh(chart);
+        
+        // Show price range
+        lv_obj_t* lbl_range = lv_label_create(screen);
+        char range_text[64];
+        snprintf(range_text, sizeof(range_text), "Range: $%.2f - $%.2f", min_price, max_price);
+        lv_label_set_text(lbl_range, range_text);
+        lv_obj_set_style_text_color(lbl_range, lv_color_hex(0xEAECEF), 0);
+        lv_obj_set_pos(lbl_range, 10, 300);
+    } else {
+        // No data yet
+        lv_obj_t* lbl_no_data = lv_label_create(screen);
+        lv_label_set_text(lbl_no_data, "No price history yet\\nData will appear after\\nfetching prices");
+        lv_obj_set_style_text_color(lbl_no_data, lv_color_hex(0x888888), 0);
+        lv_obj_set_style_text_align(lbl_no_data, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_center(lbl_no_data);
+    }
+    
+    Serial.println("[UI] Chart screen created");
+    return screen;
 }
