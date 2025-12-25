@@ -5,6 +5,9 @@
 
 // Application model - Thread-safe state management (Task 3.1)
 
+// Price history configuration
+#define PRICE_HISTORY_SIZE 30  // Store last 30 price points (reduced for RAM)
+
 // Data structures
 struct Quote {
     double price;
@@ -36,12 +39,22 @@ struct SymbolState {
     double spread_pct;
     bool spread_valid;
     
+    // Price history for charts
+    double price_history[PRICE_HISTORY_SIZE];
+    int history_count;  // Number of valid entries (0 to PRICE_HISTORY_SIZE)
+    int history_head;   // Index for next write (circular buffer)
+    
     // Timestamp for stale detection (Task 8.2)
     unsigned long last_update_ms;
     
     SymbolState() : symbol_name(""), binance_symbol(""), coinbase_product(""),
                     spread_abs(0.0), spread_pct(0.0), spread_valid(false),
-                    last_update_ms(0) {}
+                    history_count(0), history_head(0),
+                    last_update_ms(0) {
+        for (int i = 0; i < PRICE_HISTORY_SIZE; i++) {
+            price_history[i] = 0.0;
+        }
+    }
 };
 
 struct AppState {

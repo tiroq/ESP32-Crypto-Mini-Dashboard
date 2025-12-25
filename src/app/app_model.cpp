@@ -64,6 +64,14 @@ void model_update_symbol(int idx, const SymbolState& s) {
         const char* binance_sym = g_app_state.symbols[idx].binance_symbol;
         const char* coinbase_prod = g_app_state.symbols[idx].coinbase_product;
         
+        // Preserve history before update
+        double old_history[PRICE_HISTORY_SIZE];
+        int old_count = g_app_state.symbols[idx].history_count;
+        int old_head = g_app_state.symbols[idx].history_head;
+        for (int i = 0; i < PRICE_HISTORY_SIZE; i++) {
+            old_history[i] = g_app_state.symbols[idx].price_history[i];
+        }
+        
         // Update state
         g_app_state.symbols[idx] = s;
         
@@ -71,6 +79,22 @@ void model_update_symbol(int idx, const SymbolState& s) {
         g_app_state.symbols[idx].symbol_name = name;
         g_app_state.symbols[idx].binance_symbol = binance_sym;
         g_app_state.symbols[idx].coinbase_product = coinbase_prod;
+        
+        // Restore history
+        for (int i = 0; i < PRICE_HISTORY_SIZE; i++) {
+            g_app_state.symbols[idx].price_history[i] = old_history[i];
+        }
+        g_app_state.symbols[idx].history_count = old_count;
+        g_app_state.symbols[idx].history_head = old_head;
+        
+        // Add current price to history if valid
+        if (s.binance_quote.valid && s.binance_quote.price > 0) {
+            g_app_state.symbols[idx].price_history[old_head] = s.binance_quote.price;
+            g_app_state.symbols[idx].history_head = (old_head + 1) % PRICE_HISTORY_SIZE;
+            if (old_count < PRICE_HISTORY_SIZE) {
+                g_app_state.symbols[idx].history_count = old_count + 1;
+            }
+        }
         
         xSemaphoreGive(g_model_mutex);
         
