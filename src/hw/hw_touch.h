@@ -4,7 +4,10 @@
 #include <Arduino.h>
 
 // Touch input hardware abstraction
-// TODO: Implement touch input handling
+// Manages XPT2046 touch controller and LVGL input device integration
+
+// Debug mode - set to true to enable touch logging
+#define TOUCH_DEBUG false
 
 bool hw_touch_init();
 

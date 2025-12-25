@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <lvgl.h>
 #include "hw/hw_display.h"
+#include "hw/hw_touch.h"
 
 void setup() {
     Serial.begin(115200);
@@ -10,6 +11,14 @@ void setup() {
     // Initialize display hardware and LVGL
     if (!hw_display_init()) {
         Serial.println("[MAIN] Display initialization failed!");
+        while (1) {
+            delay(1000);
+        }
+    }
+
+    // Initialize touch input
+    if (!hw_touch_init()) {
+        Serial.println("[MAIN] Touch initialization failed!");
         while (1) {
             delay(1000);
         }
