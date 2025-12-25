@@ -4,6 +4,8 @@
 #include "hw/hw_touch.h"
 #include "ui/ui_root.h"
 #include "app/app_config.h"
+#include "app/app_model.h"
+#include "net/net_wifi.h"
 
 void setup() {
     Serial.begin(115200);
@@ -12,6 +14,9 @@ void setup() {
 
     // Initialize configuration first
     config_init();
+
+    // Initialize Wi-Fi (non-blocking)
+    net_wifi_init();
 
     // Initialize display hardware and LVGL
     if (!hw_display_init()) {
@@ -36,6 +41,13 @@ void setup() {
 }
 
 void loop() {
+    // Ensure Wi-Fi is connected (non-blocking, rate-limited)
+    net_wifi_ensure_connected();
+    
+    // Update model with Wi-Fi status every loop iteration
+    model_update_wifi(net_wifi_is_connected(), net_wifi_rssi());
+    
+    // Handle LVGL display tasks
     hw_display_tick();
     delay(5);
 }
