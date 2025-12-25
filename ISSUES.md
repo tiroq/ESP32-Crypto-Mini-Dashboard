@@ -22,10 +22,14 @@
   - ✅ Professional button colors (#2B3139 for nav buttons)
   - ✅ Funding rate: Yellow (positive), Red (negative) instead of yellow/cyan
   - ✅ Consistent dark theme across all screens
-- [ ] **Optimize performance and reduce latency**
-  - Reduce HTTP request overhead
-  - Optimize LVGL rendering
-  - Improve task scheduling
+- [x] **Optimize performance and reduce latency**
+  - ✅ Enabled compiler optimization (-O2) - Reduced flash by 25KB
+  - ✅ Disabled debug logging (CORE_DEBUG_LEVEL=0) - Smaller binaries, faster execution
+  - ✅ Optimized HTTP wait loop (10ms → 1ms) - Faster API responses
+  - ✅ Adjusted main loop delay (5ms → 10ms) - Reduced CPU usage  
+  - ✅ UI bindings already use caching - Only updates changed values
+  - ✅ LVGL refresh at 250ms - Good balance between responsiveness and performance
+  - **Result: Flash 90.0% → 88.0%, saved ~26KB**
 - [ ] **Add more coins**
   - Support 5-10 symbols
   - Configurable watchlist
@@ -73,13 +77,16 @@
 ---
 
 ## ⚠️ Flash Space Constraint
-**Current**: 89.9% used (1,178,941 / 1,310,720 bytes)  
-**Available**: ~132KB remaining
+**Current**: 88.0% used (1,154,037 / 1,310,720 bytes)  
+**Available**: ~157KB remaining
 
-**Before implementing large features (OTA, web interface, localization):**
-1. Remove debug Serial.printf statements (~10-20KB)
-2. Optimize LVGL fonts (~20-30KB)
-3. Enable aggressive compiler optimization (~10-15KB)
-4. Review unused library code (~5-10KB)
+**Recent optimizations:**
+- Compiler optimization (-O2): ~26KB saved
+- Debug level 0: Included in optimization savings
 
-**Target**: Free up 50-100KB to enable P4 features
+**For future features (OTA, web interface, localization):**
+1. ~~Remove debug Serial.printf statements~~ ✅ Done via CORE_DEBUG_LEVEL=0
+2. Optimize LVGL fonts (~20-30KB) - Only load needed font sizes
+3. Review unused library code (~5-10KB)
+
+**Target**: Free up another 30-50KB to enable P4 features comfortably

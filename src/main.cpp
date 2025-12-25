@@ -64,7 +64,7 @@ void loop() {
     // Handle LVGL display tasks - KEEP UI LOOP CLEAN, NO NETWORK CALLS
     // Network fetching happens in scheduler net_task
     hw_display_tick();
-    delay(5);
+    delay(10);
 }
 
 #endif // UNIT_TEST

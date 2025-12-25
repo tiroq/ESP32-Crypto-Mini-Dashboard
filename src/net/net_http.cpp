@@ -98,7 +98,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     // Wait for response with timeout
     unsigned long wait_start = millis();
     while (!client->available() && (millis() - wait_start) < timeout_ms) {
-        delay(10);
+        delay(1);
         if (!client->connected()) {
             Serial.println("[HTTP] Server disconnected while waiting for response");
             delete client;
