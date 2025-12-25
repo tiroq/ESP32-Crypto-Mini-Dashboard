@@ -109,7 +109,7 @@ void ui_bindings_apply(const AppState& state) {
         if (g_widgets.lbl_symbol) {
             if (alert_active) {
                 // Set red border/background to indicate alert
-                lv_obj_set_style_border_color(g_widgets.lbl_symbol, lv_color_hex(0xFF0000), 0);
+                lv_obj_set_style_border_color(g_widgets.lbl_symbol, lv_color_hex(0xF6465D), 0);
                 lv_obj_set_style_border_width(g_widgets.lbl_symbol, 3, 0);
             } else {
                 // Clear border when no alert
@@ -151,7 +151,7 @@ void ui_bindings_apply(const AppState& state) {
             lv_label_set_text(g_widgets.lbl_spread_pct, buf);
             
             // Color code: green if positive, red if negative
-            lv_color_t color = (sym.spread_pct >= 0) ? lv_color_hex(0x00FF00) : lv_color_hex(0xFF0000);
+            lv_color_t color = (sym.spread_pct >= 0) ? lv_color_hex(0x0ECB81) : lv_color_hex(0xF6465D);
             lv_obj_set_style_text_color(g_widgets.lbl_spread_pct, color, 0);
             
             g_cache.spread_pct = sym.spread_pct;
@@ -168,7 +168,7 @@ void ui_bindings_apply(const AppState& state) {
             lv_label_set_text(g_widgets.lbl_spread_abs, buf);
             
             // Color code: green if positive, red if negative
-            lv_color_t color = (sym.spread_abs >= 0) ? lv_color_hex(0x00FF00) : lv_color_hex(0xFF0000);
+            lv_color_t color = (sym.spread_abs >= 0) ? lv_color_hex(0x0ECB81) : lv_color_hex(0xF6465D);
             lv_obj_set_style_text_color(g_widgets.lbl_spread_abs, color, 0);
             
             g_cache.spread_abs = sym.spread_abs;
@@ -184,8 +184,8 @@ void ui_bindings_apply(const AppState& state) {
             snprintf(buf, sizeof(buf), "%.4f%%", sym.funding.rate * 100.0); // Convert to percentage
             lv_label_set_text(g_widgets.lbl_funding, buf);
             
-            // Color code: yellow for positive, cyan for negative
-            lv_color_t color = (sym.funding.rate >= 0) ? lv_color_hex(0xFFFF00) : lv_color_hex(0x00FFFF);
+            // Color code: yellow for positive, red for negative
+            lv_color_t color = (sym.funding.rate >= 0) ? lv_color_hex(0xF0B90B) : lv_color_hex(0xF6465D);
             lv_obj_set_style_text_color(g_widgets.lbl_funding, color, 0);
             
             g_cache.funding_rate = sym.funding.rate;
