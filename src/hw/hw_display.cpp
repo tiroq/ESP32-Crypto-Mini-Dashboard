@@ -64,5 +64,18 @@ bool hw_display_init() {
 }
 
 void hw_display_tick() {
+    static unsigned long last_tick_log = 0;
+    unsigned long now = millis();
+    
+    // Debug: Log every 5 seconds to verify this is being called
+    if (now - last_tick_log > 5000) {
+        Serial.println("[HW_DISPLAY] Tick running...");
+        last_tick_log = now;
+    }
+    
+    // Tell LVGL that 5ms have elapsed (critical for input device polling!)
+    lv_tick_inc(5);
+    
+    // Handle LVGL tasks including input device polling
     lv_timer_handler();
 }

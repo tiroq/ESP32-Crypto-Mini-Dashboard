@@ -17,16 +17,16 @@ void setup() {
         }
     }
 
-    // Initialize touch input
+    // Initialize UI and load Dashboard screen
+    ui_root_init();
+
+    // Initialize touch input AFTER UI is created
     if (!hw_touch_init()) {
         Serial.println("[MAIN] Touch initialization failed!");
         while (1) {
             delay(1000);
         }
     }
-
-    // Initialize UI and load Dashboard screen
-    ui_root_init();
 
     Serial.println("[MAIN] Setup complete\n");
 }
