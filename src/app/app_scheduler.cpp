@@ -242,6 +242,8 @@ static void net_task(void* parameter) {
     
     unsigned long last_price_fetch = 0;
     unsigned long last_funding_fetch = 0;
+    unsigned long last_stability_log = 0;  // Task 11.1
+    const uint32_t STABILITY_LOG_INTERVAL_MS = 60000;  // Log every 60 seconds
     
     // Wait for Wi-Fi to connect before starting
     while (!net_wifi_is_connected()) {
@@ -308,6 +310,12 @@ static void net_task(void* parameter) {
         if (any_stale && !snapshot.data_stale) {
             Serial.println("[SCHEDULER] Marking data as STALE");
             model_set_stale(true);
+        }
+        
+        // Periodic stability logging (Task 11.1)
+        if (now - last_stability_log >= STABILITY_LOG_INTERVAL_MS) {
+            last_stability_log = now;
+            log_stability_metrics();
         }
         
         // Yield to other tasks - check every second
