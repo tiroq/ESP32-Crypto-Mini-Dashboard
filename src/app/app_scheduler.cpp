@@ -241,13 +241,14 @@ static void net_task(void* parameter) {
         
         for (int i = 0; i < config_get_num_symbols(); i++) {
             if (snapshot.symbols[i].last_update_ms == 0) {
-                // Never updated - consider stale
+                // Never updated - consider stale (but don't log every time)
                 any_stale = true;
             } else {
                 // Check age, handling millis() rollover correctly
                 unsigned long age_ms = now - snapshot.symbols[i].last_update_ms;
-                if (age_ms > stale_threshold_ms) {
-                    // Updated but too old
+                // Only log and mark stale if age exceeds threshold
+                if (age_ms > stale_threshold_ms && age_ms < 4000000000UL) {
+                    // Updated but too old (and not wrapped around)
                     any_stale = true;
                     Serial.printf("[SCHEDULER] %s data is stale (age: %lu ms)\n",
                                  snapshot.symbols[i].symbol_name, age_ms);
