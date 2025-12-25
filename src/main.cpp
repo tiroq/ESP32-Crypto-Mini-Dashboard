@@ -7,6 +7,7 @@
 #include "app/app_model.h"
 #include "net/net_wifi.h"
 #include "net/net_http.h"
+#include "net/net_binance.h"
 
 // Test flag to run HTTP test once
 static bool http_test_done = false;
@@ -58,12 +59,22 @@ void loop() {
         
         String response;
         if (http_get("http://httpbin.org/get", response, 10000)) {
-            Serial.printf("[MAIN] HTTP test SUCCESS: %d bytes\\n", response.length());
+            Serial.printf("[MAIN] HTTP test SUCCESS: %d bytes\n", response.length());
             Serial.println("[MAIN] First 200 chars:");
             Serial.println(response.substring(0, 200));
         } else {
             Serial.println("[MAIN] HTTP test FAILED");
         }
+        
+        // Test Binance spot price (Task 6.1)
+        Serial.println("\n[MAIN] Testing Binance spot price...");
+        double btc_price = 0.0;
+        if (net_binance::fetch_spot("BTCUSDT", &btc_price)) {
+            Serial.printf("[MAIN] Binance test SUCCESS: BTC price = $%.2f\n", btc_price);
+        } else {
+            Serial.println("[MAIN] Binance test FAILED");
+        }
+        
         Serial.println();
     }
     
