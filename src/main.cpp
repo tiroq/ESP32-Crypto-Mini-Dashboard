@@ -3,11 +3,15 @@
 #include "hw/hw_display.h"
 #include "hw/hw_touch.h"
 #include "ui/ui_root.h"
+#include "app/app_config.h"
 
 void setup() {
     Serial.begin(115200);
     Serial.println("\n=== Crypto Dashboard ===");
     Serial.println("Starting initialization...");
+
+    // Initialize configuration first
+    config_init();
 
     // Initialize display hardware and LVGL
     if (!hw_display_init()) {
