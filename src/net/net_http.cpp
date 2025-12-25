@@ -117,16 +117,28 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     status_line.trim();
     Serial.printf("[HTTP] Status: %s\n", status_line.c_str());
     
-    // Parse status code
+    // Parse status code (handle both "HTTP/1.1 200 OK" and "HTTP/1.1 200")
     int first_space = status_line.indexOf(' ');
-    int second_space = status_line.indexOf(' ', first_space + 1);
-    if (first_space < 0 || second_space < 0) {
-        Serial.println("[HTTP] Invalid status line");
+    if (first_space < 0) {
+        Serial.println("[HTTP] Invalid status line format");
         delete client;
         return false;
     }
     
-    int status_code = status_line.substring(first_space + 1, second_space).toInt();
+    int second_space = status_line.indexOf(' ', first_space + 1);
+    String status_code_str;
+    
+    if (second_space < 0) {
+        // No second space - format is "HTTP/1.1 200" without reason phrase
+        status_code_str = status_line.substring(first_space + 1);
+    } else {
+        // Format is "HTTP/1.1 200 OK" with reason phrase
+        status_code_str = status_line.substring(first_space + 1, second_space);
+    }
+    
+    status_code_str.trim();
+    int status_code = status_code_str.toInt();
+    
     if (status_code != 200) {
         Serial.printf("[HTTP] Non-200 status: %d\n", status_code);
         delete client;
