@@ -1,5 +1,6 @@
 #include "ui_screens.h"
 #include "../app/app_model.h"
+#include "../app/app_config.h"
 
 // Screen and widget references
 static lv_obj_t* screen_dashboard = NULL;
@@ -256,6 +257,23 @@ lv_obj_t* ui_screens_create_alerts() {
     return screen;
 }
 
+// Forward declarations for settings screen
+static void settings_save_clicked(lv_event_t* e);
+static void settings_spread_changed(lv_event_t* e);
+static void settings_funding_changed(lv_event_t* e);
+static void settings_price_refresh_changed(lv_event_t* e);
+static void settings_funding_refresh_changed(lv_event_t* e);
+
+// Settings screen widgets (Task 10.2)
+static lv_obj_t* slider_spread = NULL;
+static lv_obj_t* slider_funding = NULL;
+static lv_obj_t* slider_price_refresh = NULL;
+static lv_obj_t* slider_funding_refresh = NULL;
+static lv_obj_t* lbl_spread_value = NULL;
+static lv_obj_t* lbl_funding_value = NULL;
+static lv_obj_t* lbl_price_refresh_value = NULL;
+static lv_obj_t* lbl_funding_refresh_value = NULL;
+
 lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), 0);
@@ -263,22 +281,191 @@ lv_obj_t* ui_screens_create_settings() {
     // Store screen reference
     screen_settings = screen;
     
-    lv_obj_t* label = lv_label_create(screen);
-    lv_label_set_text(label, "Settings Screen\nTODO");
-    lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_center(label);
+    // Title
+    lv_obj_t* lbl_title = lv_label_create(screen);
+    lv_label_set_text(lbl_title, "Settings");
+    lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_16, 0);
+    lv_obj_align(lbl_title, LV_ALIGN_TOP_MID, 0, 10);
+    
+    int y_pos = 45;
+    int row_height = 45;
+    
+    // Spread alert threshold (0.1% to 2.0%, step 0.1%)
+    lv_obj_t* lbl_spread = lv_label_create(screen);
+    lv_label_set_text(lbl_spread, "Spread Alert:");
+    lv_obj_set_style_text_color(lbl_spread, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_pos(lbl_spread, 10, y_pos);
+    
+    lbl_spread_value = lv_label_create(screen);
+    lv_obj_set_style_text_color(lbl_spread_value, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_pos(lbl_spread_value, 250, y_pos);
+    
+    slider_spread = lv_slider_create(screen);
+    lv_obj_set_size(slider_spread, 200, 10);
+    lv_obj_set_pos(slider_spread, 10, y_pos + 22);
+    lv_slider_set_range(slider_spread, 1, 20); // 0.1% to 2.0% (value * 0.1)
+    lv_slider_set_value(slider_spread, (int)(config_get_spread_alert_pct() * 10), LV_ANIM_OFF);
+    lv_obj_add_event_cb(slider_spread, settings_spread_changed, LV_EVENT_VALUE_CHANGED, NULL);
+    
+    y_pos += row_height;
+    
+    // Funding alert threshold (0.001% to 0.05%, step 0.001%)
+    lv_obj_t* lbl_funding = lv_label_create(screen);
+    lv_label_set_text(lbl_funding, "Funding Alert:");
+    lv_obj_set_style_text_color(lbl_funding, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_pos(lbl_funding, 10, y_pos);
+    
+    lbl_funding_value = lv_label_create(screen);
+    lv_obj_set_style_text_color(lbl_funding_value, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_pos(lbl_funding_value, 250, y_pos);
+    
+    slider_funding = lv_slider_create(screen);
+    lv_obj_set_size(slider_funding, 200, 10);
+    lv_obj_set_pos(slider_funding, 10, y_pos + 22);
+    lv_slider_set_range(slider_funding, 1, 50); // 0.001% to 0.05% (value * 0.001)
+    lv_slider_set_value(slider_funding, (int)(config_get_funding_alert_pct() * 1000), LV_ANIM_OFF);
+    lv_obj_add_event_cb(slider_funding, settings_funding_changed, LV_EVENT_VALUE_CHANGED, NULL);
+    
+    y_pos += row_height;
+    
+    // Price refresh interval (1s to 30s)
+    lv_obj_t* lbl_price_refresh = lv_label_create(screen);
+    lv_label_set_text(lbl_price_refresh, "Price Refresh:");
+    lv_obj_set_style_text_color(lbl_price_refresh, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_pos(lbl_price_refresh, 10, y_pos);
+    
+    lbl_price_refresh_value = lv_label_create(screen);
+    lv_obj_set_style_text_color(lbl_price_refresh_value, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_pos(lbl_price_refresh_value, 250, y_pos);
+    
+    slider_price_refresh = lv_slider_create(screen);
+    lv_obj_set_size(slider_price_refresh, 200, 10);
+    lv_obj_set_pos(slider_price_refresh, 10, y_pos + 22);
+    lv_slider_set_range(slider_price_refresh, 1, 30); // 1s to 30s
+    lv_slider_set_value(slider_price_refresh, config_get_price_refresh_ms() / 1000, LV_ANIM_OFF);
+    lv_obj_add_event_cb(slider_price_refresh, settings_price_refresh_changed, LV_EVENT_VALUE_CHANGED, NULL);
+    
+    y_pos += row_height;
+    
+    // Funding refresh interval (10s to 300s)
+    lv_obj_t* lbl_funding_refresh = lv_label_create(screen);
+    lv_label_set_text(lbl_funding_refresh, "Funding Refresh:");
+    lv_obj_set_style_text_color(lbl_funding_refresh, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_pos(lbl_funding_refresh, 10, y_pos);
+    
+    lbl_funding_refresh_value = lv_label_create(screen);
+    lv_obj_set_style_text_color(lbl_funding_refresh_value, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_pos(lbl_funding_refresh_value, 250, y_pos);
+    
+    slider_funding_refresh = lv_slider_create(screen);
+    lv_obj_set_size(slider_funding_refresh, 200, 10);
+    lv_obj_set_pos(slider_funding_refresh, 10, y_pos + 22);
+    lv_slider_set_range(slider_funding_refresh, 10, 300); // 10s to 300s
+    lv_slider_set_value(slider_funding_refresh, config_get_funding_refresh_ms() / 1000, LV_ANIM_OFF);
+    lv_obj_add_event_cb(slider_funding_refresh, settings_funding_refresh_changed, LV_EVENT_VALUE_CHANGED, NULL);
+    
+    // Update value labels
+    settings_spread_changed(NULL);
+    settings_funding_changed(NULL);
+    settings_price_refresh_changed(NULL);
+    settings_funding_refresh_changed(NULL);
+    
+    // Save button
+    lv_obj_t* btn_save = lv_btn_create(screen);
+    lv_obj_set_size(btn_save, 120, 50);
+    lv_obj_align(btn_save, LV_ALIGN_BOTTOM_LEFT, 30, -10);
+    lv_obj_set_style_bg_color(btn_save, lv_color_hex(0x00AA00), 0);
+    lv_obj_add_event_cb(btn_save, settings_save_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_save = lv_label_create(btn_save);
+    lv_label_set_text(lbl_save, "SAVE");
+    lv_obj_center(lbl_save);
     
     // Back button
     lv_obj_t* btn_back = lv_btn_create(screen);
-    lv_obj_set_size(btn_back, 100, 50);
-    lv_obj_align(btn_back, LV_ALIGN_BOTTOM_MID, 0, -10);
+    lv_obj_set_size(btn_back, 120, 50);
+    lv_obj_align(btn_back, LV_ALIGN_BOTTOM_RIGHT, -30, -10);
     lv_obj_add_event_cb(btn_back, btn_back_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_back = lv_label_create(btn_back);
     lv_label_set_text(lbl_back, "Back");
     lv_obj_center(lbl_back);
     
-    Serial.println("[UI] Settings screen created");
+    Serial.println("[UI] Settings screen created with controls");
     return screen;
+}
+
+// Settings slider callbacks (Task 10.2)
+static void settings_spread_changed(lv_event_t* e) {
+    if (slider_spread && lbl_spread_value) {
+        int val = lv_slider_get_value(slider_spread);
+        double pct = val * 0.1;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.1f%%", pct);
+        lv_label_set_text(lbl_spread_value, buf);
+    }
+}
+
+static void settings_funding_changed(lv_event_t* e) {
+    if (slider_funding && lbl_funding_value) {
+        int val = lv_slider_get_value(slider_funding);
+        double pct = val * 0.001;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.3f%%", pct);
+        lv_label_set_text(lbl_funding_value, buf);
+    }
+}
+
+static void settings_price_refresh_changed(lv_event_t* e) {
+    if (slider_price_refresh && lbl_price_refresh_value) {
+        int val = lv_slider_get_value(slider_price_refresh);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d s", val);
+        lv_label_set_text(lbl_price_refresh_value, buf);
+    }
+}
+
+static void settings_funding_refresh_changed(lv_event_t* e) {
+    if (slider_funding_refresh && lbl_funding_refresh_value) {
+        int val = lv_slider_get_value(slider_funding_refresh);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d s", val);
+        lv_label_set_text(lbl_funding_refresh_value, buf);
+    }
+}
+
+static void settings_save_clicked(lv_event_t* e) {
+    Serial.println("[UI] Save button clicked");
+    
+    // Read slider values and update config
+    if (slider_spread) {
+        int val = lv_slider_get_value(slider_spread);
+        double pct = val * 0.1;
+        config_set_spread_alert_pct(pct);
+    }
+    
+    if (slider_funding) {
+        int val = lv_slider_get_value(slider_funding);
+        double pct = val * 0.001;
+        config_set_funding_alert_pct(pct);
+    }
+    
+    if (slider_price_refresh) {
+        int val = lv_slider_get_value(slider_price_refresh);
+        config_set_price_refresh_ms(val * 1000);
+    }
+    
+    if (slider_funding_refresh) {
+        int val = lv_slider_get_value(slider_funding_refresh);
+        config_set_funding_refresh_ms(val * 1000);
+    }
+    
+    // Save to NVS
+    if (config_save()) {
+        Serial.println("[UI] Settings saved successfully to NVS");
+        // TODO: Show "Saved!" feedback on screen
+    } else {
+        Serial.println("[UI] ERROR: Failed to save settings");
+    }
 }
 
 DashboardWidgets ui_screens_get_dashboard_widgets() {
