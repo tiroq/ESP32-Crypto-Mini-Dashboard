@@ -40,6 +40,14 @@ struct AppConfig {
 // Initialize configuration with defaults
 void config_init();
 
+// Load configuration from storage (NVS) - Task 10.1
+// Returns true if loaded from storage, false if using defaults
+bool config_load();
+
+// Save current configuration to storage (NVS) - Task 10.1
+// Returns true on success, false on error
+bool config_save();
+
 // Get the current configuration (returns reference, not thread-safe - read-only)
 const AppConfig& config_get();
 

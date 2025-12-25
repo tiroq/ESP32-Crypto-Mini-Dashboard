@@ -1,4 +1,5 @@
 #include "app_config.h"
+#include "../hw/hw_storage.h"
 
 // Global configuration instance
 static AppConfig g_config;
@@ -40,6 +41,27 @@ void config_init() {
     Serial.printf("[CONFIG]   Spread alert: %.2f%%\n", g_config.spread_alert_pct);
     Serial.printf("[CONFIG]   Funding alert: %.4f%%\n", g_config.funding_alert_pct);
     Serial.printf("[CONFIG]   Stale threshold: %lu ms\n", g_config.stale_ms);
+}
+
+bool config_load() {
+    // Try to load from storage
+    if (hw_storage_load_config(&g_config)) {
+        Serial.println("[CONFIG] Configuration loaded from NVS");
+        return true;
+    } else {
+        Serial.println("[CONFIG] No saved config or version mismatch - using defaults");
+        return false;
+    }
+}
+
+bool config_save() {
+    if (hw_storage_save_config(&g_config)) {
+        Serial.println("[CONFIG] Configuration saved successfully");
+        return true;
+    } else {
+        Serial.println("[CONFIG] ERROR: Failed to save configuration");
+        return false;
+    }
 }
 
 const AppConfig& config_get() {
