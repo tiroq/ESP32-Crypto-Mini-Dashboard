@@ -402,7 +402,6 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_funding_refresh = lv_label_create(screen);
     lv_label_set_text(lbl_funding_refresh, "Funding Rate Update");
     lv_obj_set_style_text_color(lbl_funding_refresh, lv_color_hex(0xCCCCCC), 0);
-    lv_obj_set_style_text_font(lbl_funding_refresh, &lv_font_montserrat_12, 0);
     lv_obj_set_pos(lbl_funding_refresh, 15, y_pos);
     
     lbl_funding_refresh_value = lv_label_create(screen);
