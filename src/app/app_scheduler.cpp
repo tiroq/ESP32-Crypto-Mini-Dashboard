@@ -243,12 +243,15 @@ static void net_task(void* parameter) {
             if (snapshot.symbols[i].last_update_ms == 0) {
                 // Never updated - consider stale
                 any_stale = true;
-            } else if ((now - snapshot.symbols[i].last_update_ms) > stale_threshold_ms) {
-                // Updated but too old
-                any_stale = true;
-                Serial.printf("[SCHEDULER] %s data is stale (age: %lu ms)\n",
-                             snapshot.symbols[i].symbol_name,
-                             now - snapshot.symbols[i].last_update_ms);
+            } else {
+                // Check age, handling millis() rollover correctly
+                unsigned long age_ms = now - snapshot.symbols[i].last_update_ms;
+                if (age_ms > stale_threshold_ms) {
+                    // Updated but too old
+                    any_stale = true;
+                    Serial.printf("[SCHEDULER] %s data is stale (age: %lu ms)\n",
+                                 snapshot.symbols[i].symbol_name, age_ms);
+                }
             }
         }
         
