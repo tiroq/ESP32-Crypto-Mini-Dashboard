@@ -30,12 +30,18 @@
   - ✅ UI bindings already use caching - Only updates changed values
   - ✅ LVGL refresh at 250ms - Good balance between responsiveness and performance
   - **Result: Flash 90.0% → 88.0%, saved ~26KB**
-- [ ] **Add more coins**
-  - Support 5-10 symbols
-  - Configurable watchlist
+- [x] **Add more coins**
+  - ✅ Support for 10 symbols (BTC, ETH, SOL, XRP, ADA, DOGE, MATIC, DOT, LINK, AVAX)
+  - ✅ Configurable per-symbol enable/disable flags
+  - ✅ Dynamic symbol navigation (skips disabled symbols)
+  - ✅ Exchange selection per symbol (primary/secondary)
+  - **Flash impact**: +~300 bytes
+  - Default: 3 enabled (BTC, ETH, SOL), 7 disabled
+  - Next steps: UI for watchlist management
 - [ ] **Add more exchanges**
-  - Kraken, Coinbase Pro
-  - Exchange selection per symbol
+  - Kraken API client implementation
+  - Multi-exchange fetching logic
+  - Exchange selection per symbol (already in config)
 
 ## 🟢 Low Priority (P3)
 - [x] **Add historical data charts for price trends**
