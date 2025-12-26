@@ -26,7 +26,37 @@ Dashboard:
 - Touch navigation between symbols and screens
 - Configurable alert thresholds
 - Persistent settings (NVS storage)
+- **OTA firmware updates** - Update firmware via web browser (HTTP)
 - **Screenshot capture** - Capture UI via serial commands and download as BMP files
+- **Compile-time feature flags** - Disable unused features to save flash space
+
+### Feature Flags
+
+Optional features can be disabled at compile-time to free up flash memory. Edit `src/config.h`:
+
+```cpp
+#define ENABLE_OTA 1         // OTA updates (saves ~68KB when disabled)
+#define ENABLE_SERIAL 1      // Debug output (saves ~6KB when disabled)  
+#define ENABLE_SCREENSHOT 1  // Screenshots (saves ~1KB when disabled)
+```
+
+**Flash savings** (measured):
+- All features enabled: **92.2% flash** (1,207,901 bytes) - 102.8KB available
+- All features disabled: **86.4% flash** (1,132,993 bytes) - 177.7KB available
+- **Total savings: ~75KB** (enough for a web dashboard interface!)
+
+See [docs/FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md) for complete configuration guide.
+
+### OTA Updates
+
+Update firmware without USB cable via web browser:
+
+1. Connect to device's WiFi network
+2. Navigate to **OTA** screen on device to see upload URL: `http://<IP>:8080`
+3. Open URL in browser, select `.bin` file, click "Upload Firmware"
+4. Device automatically reboots with new firmware
+
+**Note:** OTA requires `ENABLE_OTA 1` in `src/config.h` (enabled by default).
 
 ## Screenshots
 
@@ -107,6 +137,7 @@ pio device monitor --baud 115200
 /src
   main.cpp
   secrets.h          # Wi-Fi credentials (gitignored)
+  config.h           # Feature flags (OTA, Serial, Screenshot)
   app/               # Application logic
     app_model.h/.cpp       # Thread-safe state management
     app_config.h/.cpp      # Configuration defaults
@@ -118,6 +149,7 @@ pio device monitor --baud 115200
     net_binance.h/.cpp     # Binance API adapter
     net_coinbase.h/.cpp    # Coinbase API adapter
     net_time.h/.cpp        # NTP time sync
+    net_ota.h/.cpp         # OTA firmware update server
   ui/                # User interface
     ui_root.h/.cpp         # UI initialization
     ui_screens.h/.cpp      # Screen layouts
@@ -129,6 +161,8 @@ pio device monitor --baud 115200
     hw_touch.h/.cpp        # Touch input (XPT2046)
     hw_alert.h/.cpp        # Alert/buzzer output
     hw_storage.h/.cpp      # NVS persistence
+  tools/             # Development tools
+    spiffs_download.cpp    # Serial screenshot download
 ```
 
 Capture the current UI state via serial commands:
@@ -190,8 +224,15 @@ This project follows a modular architecture with clear separation:
 - **No LVGL in networking modules** - Network tasks update model via thread-safe APIs
 - **FreeRTOS tasks** - Networking runs in dedicated task, UI loop remains responsive
 - **Mutex-protected state** - All model access is thread-safe via `model_snapshot()`
+- **Compile-time feature flags** - Disable OTA/Serial/Screenshot to save ~75KB flash
 
-See `COPILOT_TASKS.md` for detailed implementation roadmap.
+### Documentation
+
+- [FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md) - Feature flag configuration guide
+- [SCREENSHOT.md](docs/SCREENSHOT.md) - Screenshot capture documentation
+- [BOARD.md](docs/BOARD.md) - Hardware pinout and specifications
+
+See `COPILOT_TASKS.md` for detailed implementation roadmap and `ISSUES.md` for optimization notes.
 
 ## License
 
