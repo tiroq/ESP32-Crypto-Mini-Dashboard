@@ -86,12 +86,13 @@
   - ✅ Automatic reboot after successful update
   - **Flash impact: +30,756 bytes (89.8% → 92.2%)**
   - **Trade-offs**: LVGL buffer reduced (40→20 rows), heap reduced (48KB→40KB)
-- [ ] **Implement a web interface for remote monitoring and configuration**
-  - ✅ **Now feasible!** Default build has ~265KB available (HTTP mode)
-  - Requires ~150KB flash for web dashboard
-  - WebSocket real-time updates would add ~20-30KB (still fits)
-  - Could integrate with existing OTA page or create separate dashboard
-  - Remaining space allows for localization or additional features
+- [x] **Implement a web interface for remote monitoring and configuration**
+  - ✅ **Implemented!** Web dashboard with real-time monitoring
+  - Flash impact: +18KB (79.8% → 81.2%)
+  - Features: Real-time price/funding display, settings configuration
+  - REST API: GET/POST /api/prices, /api/settings, /api/settings/reset
+  - Access: http://<ESP32-IP>:8080/dashboard (when connected to WiFi)
+  - Binance color scheme, responsive design, auto-refresh every 5 seconds
 - [ ] **Add support for different languages (localization)**
   - Requires ~50-100KB flash space
   - Multi-language strings
@@ -110,18 +111,17 @@
 ---
 
 ## ⚠️ Flash Space Constraint
-**Current**: 92.2% used (1,208,145 / 1,310,720 bytes)  
-**Previous**: 89.8% used (1,177,389 bytes)
-**Available**: ~102KB remaining
+**Current**: 81.2% used (1,064,881 / 1,310,720 bytes)  
+**Previous**: 79.8% used (1,046,137 bytes) - HTTP mode default
+**Available**: ~246KB remaining
 
 **Recent changes:**
-- ✅ **OTA updates implemented** (+30,756 bytes)
-  - WebServer library (~25KB)
-  - Update library (~3KB)  
-  - OTA screen and HTML page (~2KB)
-  - Reduced LVGL buffer (40→20 rows, saved ~12.8KB)
-  - Reduced LVGL heap (48KB→40KB, saved ~8KB)
-  - Net impact: +30,756 bytes
+- ✅ **Web dashboard implemented** (+18KB)
+  - Real-time monitoring interface with REST API
+  - Settings configuration via web UI
+  - Responsive design with Binance colors
+  - Auto-refresh prices every 5 seconds
+  - Flash impact: 79.8% → 81.2% (+18,744 bytes)
 - ✅ **Animations disabled** (`LV_USE_ANIMATION 0`)
   - Flash saved: ~244 bytes (minimal - only had 6 animation calls)
   - Benefit: Instant screen transitions (faster UX)
@@ -135,13 +135,13 @@
 - Animations disabled: ~244 bytes saved
 - OTA updates: +30,756 bytes
 
-**Current Flash Usage: 92.2%** (1,207,901 / 1,310,720 bytes) = **~102.8KB available**
+**Current Flash Usage: 81.2%** (1,064,881 / 1,310,720 bytes) = **~245.8KB available**
 
 **Current status (HTTP default):**
-- ✅ **Web interface FEASIBLE** (~234KB available in default build)
-- ✅ **Additional features possible** (good flash headroom)
-- ⚠️ **HTTPS optional** (costs 131KB, reduces to 102KB available)
-- ✅ **Localization possible** (50-100KB fits in default build)
+- ✅ **Web interface IMPLEMENTED** (dashboard + REST API working)
+- ✅ **Additional features possible** (excellent flash headroom)
+- ⚠️ **HTTPS optional** (costs 131KB, would use ~212KB total)
+- ✅ **Localization possible** (50-100KB still fits comfortably)
 - ✅ **Feature flags available** - See [FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md) for configuration
 
 **Feature flags (measured impact):**
