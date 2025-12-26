@@ -1,17 +1,12 @@
 #include "app_model.h"
 #include "../config.h"
+#include "app_config.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
 // Global state with FreeRTOS mutex protection
 static AppState g_app_state;
 static SemaphoreHandle_t g_model_mutex = NULL;
-
-// Symbol configuration
-static const char* SYMBOL_NAMES[] = {"BTC/USDT", "ETH/USDT", "SOL/USDT"};
-static const char* BINANCE_SYMBOLS[] = {"BTCUSDT", "ETHUSDT", "SOLUSDT"};
-static const char* COINBASE_PRODUCTS[] = {"BTC-USD", "ETH-USD", "SOL-USD"};
-static const int NUM_SYMBOLS = 3;
 
 void model_init() {
     // Create mutex for thread-safe access
@@ -23,21 +18,30 @@ void model_init() {
         }
     }
     
-    // Initialize symbol configurations
-    for (int i = 0; i < NUM_SYMBOLS; i++) {
-        g_app_state.symbols[i].symbol_name = SYMBOL_NAMES[i];
-        g_app_state.symbols[i].binance_symbol = BINANCE_SYMBOLS[i];
-        g_app_state.symbols[i].coinbase_product = COINBASE_PRODUCTS[i];
+    // Initialize symbol configurations from config
+    const AppConfig& cfg = config_get();
+    for (int i = 0; i < cfg.num_symbols && i < MAX_SYMBOLS; i++) {
+        g_app_state.symbols[i].symbol_name = cfg.symbols[i].display_name;
+        g_app_state.symbols[i].binance_symbol = cfg.symbols[i].binance_symbol;
+        g_app_state.symbols[i].coinbase_product = cfg.symbols[i].coinbase_product;
     }
     
+    // Start with first enabled symbol
     g_app_state.selected_symbol_idx = 0;
+    if (!config_is_symbol_enabled(0)) {
+        g_app_state.selected_symbol_idx = config_get_next_enabled_symbol(0);
+    }
+    
     g_app_state.data_stale = true;
     g_app_state.wifi_connected = false;
     g_app_state.wifi_rssi = 0;
     strcpy(g_app_state.current_time, "--:--");
     
     DEBUG_PRINTLN("[MODEL] Initialized with thread-safe mutex");
-    DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", SYMBOL_NAMES[0]);
+    DEBUG_PRINTF("[MODEL] Configured symbols: %d total, %d enabled\n", 
+                cfg.num_symbols, config_get_enabled_symbol_count());
+    DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", 
+                cfg.symbols[g_app_state.selected_symbol_idx].display_name);
 }
 
 AppState model_snapshot() {
@@ -54,7 +58,7 @@ AppState model_snapshot() {
 }
 
 void model_update_symbol(int idx, const SymbolState& s) {
-    if (idx < 0 || idx >= NUM_SYMBOLS) {
+    if (idx < 0 || idx >= MAX_SYMBOLS) {
         DEBUG_PRINTF("[MODEL] ERROR: Invalid symbol index %d\n", idx);
         return;
     }
@@ -110,7 +114,7 @@ void model_update_symbol(int idx, const SymbolState& s) {
 }
 
 void model_set_selected(int idx) {
-    if (idx < 0 || idx >= NUM_SYMBOLS) {
+    if (idx < 0 || idx >= MAX_SYMBOLS) {
         DEBUG_PRINTF("[MODEL] ERROR: Invalid symbol index %d\n", idx);
         return;
     }
@@ -119,7 +123,8 @@ void model_set_selected(int idx) {
         g_app_state.selected_symbol_idx = idx;
         xSemaphoreGive(g_model_mutex);
         
-        DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", SYMBOL_NAMES[idx]);
+        const AppConfig& cfg = config_get();
+        DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", cfg.symbols[idx].display_name);
     } else {
         DEBUG_PRINTLN("[MODEL] WARNING: Failed to acquire mutex for set_selected");
     }
@@ -139,8 +144,9 @@ int model_get_selected() {
 }
 
 const char* model_get_symbol_name(int idx) {
-    if (idx >= 0 && idx < NUM_SYMBOLS) {
-        return SYMBOL_NAMES[idx];
+    if (idx >= 0 && idx < MAX_SYMBOLS) {
+        const AppConfig& cfg = config_get();
+        return cfg.symbols[idx].display_name;
     }
     return "UNKNOWN";
 }

@@ -2,6 +2,7 @@
 #define APP_MODEL_H
 
 #include <Arduino.h>
+#include "app_config.h"  // For MAX_SYMBOLS
 
 // Application model - Thread-safe state management (Task 3.1)
 
@@ -58,7 +59,7 @@ struct SymbolState {
 };
 
 struct AppState {
-    SymbolState symbols[3];  // BTC, ETH, SOL
+    SymbolState symbols[MAX_SYMBOLS];  // Up to 10 symbols
     int selected_symbol_idx;
     bool data_stale;
     

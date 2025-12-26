@@ -6,18 +6,42 @@
 
 // Application configuration - defaults and settings (Task 3.2)
 
+// Maximum number of symbols supported
+#define MAX_SYMBOLS 10
+
+// Exchange selection
+enum Exchange {
+    EXCHANGE_BINANCE = 0,
+    EXCHANGE_COINBASE,
+    EXCHANGE_KRAKEN,
+    EXCHANGE_AUTO  // Auto-select best available exchange
+};
+
 // Symbol configuration
 struct SymbolConfig {
-    const char* display_name;      // e.g., "BTC/USDT"
-    const char* binance_symbol;    // e.g., "BTCUSDT"
-    const char* coinbase_product;  // e.g., "BTC-USD"
+    char display_name[16];         // e.g., "BTC/USDT"
+    char binance_symbol[16];       // e.g., "BTCUSDT"
+    char coinbase_product[16];     // e.g., "BTC-USD"
+    char kraken_pair[16];          // e.g., "XXBTZUSD"
+    Exchange primary_exchange;     // Primary exchange to use
+    Exchange secondary_exchange;   // Fallback if primary fails
+    bool enabled;                  // Whether this symbol is active
+    
+    SymbolConfig() : primary_exchange(EXCHANGE_BINANCE),
+                    secondary_exchange(EXCHANGE_COINBASE),
+                    enabled(true) {
+        display_name[0] = '\0';
+        binance_symbol[0] = '\0';
+        coinbase_product[0] = '\0';
+        kraken_pair[0] = '\0';
+    }
 };
 
 // Application configuration structure
 struct AppConfig {
-    // Symbol list
-    SymbolConfig symbols[3];
-    int num_symbols;
+    // Symbol list (up to 10 symbols)
+    SymbolConfig symbols[MAX_SYMBOLS];
+    int num_symbols;  // Number of configured symbols (enabled or disabled)
     
     // Refresh intervals (milliseconds)
     uint32_t price_refresh_ms;
@@ -72,5 +96,13 @@ void config_set_spread_alert_pct(double pct);
 void config_set_funding_alert_pct(double pct);
 PowerMode config_get_power_mode();
 void config_set_power_mode(PowerMode mode);
+
+// Symbol management helpers
+int config_get_enabled_symbol_count();  // Count of enabled symbols
+int config_get_next_enabled_symbol(int current);  // Next enabled symbol index
+int config_get_prev_enabled_symbol(int current);  // Previous enabled symbol index
+void config_set_symbol_enabled(int idx, bool enabled);
+bool config_is_symbol_enabled(int idx);
+void config_set_symbol_exchange(int idx, Exchange primary, Exchange secondary);
 
 #endif // APP_CONFIG_H
