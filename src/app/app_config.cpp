@@ -34,40 +34,40 @@ void config_init() {
     // Stale data detection (3x price refresh interval to allow for retries/delays)
     g_config.stale_ms = 30000;             // 30 seconds (3x price refresh)
     
-    Serial.println("[CONFIG] Initialized with defaults:");
-    Serial.printf("[CONFIG]   Symbols: %d (BTC, ETH, SOL)\n", g_config.num_symbols);
-    Serial.printf("[CONFIG]   Price refresh: %lu ms\n", g_config.price_refresh_ms);
-    Serial.printf("[CONFIG]   Funding refresh: %lu ms\n", g_config.funding_refresh_ms);
-    Serial.printf("[CONFIG]   Spread alert: %.2f%%\n", g_config.spread_alert_pct);
-    Serial.printf("[CONFIG]   Funding alert: %.4f%%\n", g_config.funding_alert_pct);
-    Serial.printf("[CONFIG]   Stale threshold: %lu ms\n", g_config.stale_ms);
+    DEBUG_PRINTLN("[CONFIG] Initialized with defaults:");
+    DEBUG_PRINTF("[CONFIG]   Symbols: %d (BTC, ETH, SOL)\n", g_config.num_symbols);
+    DEBUG_PRINTF("[CONFIG]   Price refresh: %lu ms\n", g_config.price_refresh_ms);
+    DEBUG_PRINTF("[CONFIG]   Funding refresh: %lu ms\n", g_config.funding_refresh_ms);
+    DEBUG_PRINTF("[CONFIG]   Spread alert: %.2f%%\n", g_config.spread_alert_pct);
+    DEBUG_PRINTF("[CONFIG]   Funding alert: %.4f%%\n", g_config.funding_alert_pct);
+    DEBUG_PRINTF("[CONFIG]   Stale threshold: %lu ms\n", g_config.stale_ms);
 }
 
 bool config_load() {
     // Try to load from storage
     if (hw_storage_load_config(&g_config)) {
-        Serial.println("[CONFIG] Configuration loaded from NVS");
+        DEBUG_PRINTLN("[CONFIG] Configuration loaded from NVS");
         
         // Force update stale threshold if it's still at old default
         if (g_config.stale_ms == 15000) {
             g_config.stale_ms = 30000;
-            Serial.println("[CONFIG] Updated stale threshold: 15s -> 30s");
+            DEBUG_PRINTLN("[CONFIG] Updated stale threshold: 15s -> 30s");
             config_save();  // Save updated config
         }
         
         return true;
     } else {
-        Serial.println("[CONFIG] No saved config or version mismatch - using defaults");
+        DEBUG_PRINTLN("[CONFIG] No saved config or version mismatch - using defaults");
         return false;
     }
 }
 
 bool config_save() {
     if (hw_storage_save_config(&g_config)) {
-        Serial.println("[CONFIG] Configuration saved successfully");
+        DEBUG_PRINTLN("[CONFIG] Configuration saved successfully");
         return true;
     } else {
-        Serial.println("[CONFIG] ERROR: Failed to save configuration");
+        DEBUG_PRINTLN("[CONFIG] ERROR: Failed to save configuration");
         return false;
     }
 }
@@ -109,20 +109,20 @@ uint32_t config_get_stale_ms() {
 
 void config_set_price_refresh_ms(uint32_t ms) {
     g_config.price_refresh_ms = ms;
-    Serial.printf("[CONFIG] Price refresh updated to %lu ms\n", ms);
+    DEBUG_PRINTF("[CONFIG] Price refresh updated to %lu ms\n", ms);
 }
 
 void config_set_funding_refresh_ms(uint32_t ms) {
     g_config.funding_refresh_ms = ms;
-    Serial.printf("[CONFIG] Funding refresh updated to %lu ms\n", ms);
+    DEBUG_PRINTF("[CONFIG] Funding refresh updated to %lu ms\n", ms);
 }
 
 void config_set_spread_alert_pct(double pct) {
     g_config.spread_alert_pct = pct;
-    Serial.printf("[CONFIG] Spread alert updated to %.2f%%\n", pct);
+    DEBUG_PRINTF("[CONFIG] Spread alert updated to %.2f%%\n", pct);
 }
 
 void config_set_funding_alert_pct(double pct) {
     g_config.funding_alert_pct = pct;
-    Serial.printf("[CONFIG] Funding alert updated to %.4f%%\n", pct);
+    DEBUG_PRINTF("[CONFIG] Funding alert updated to %.4f%%\n", pct);
 }

@@ -30,8 +30,8 @@ void alerts_init() {
     }
     g_active_alert_count = 0;
     
-    Serial.println("[ALERTS] Alert engine initialized");
-    Serial.printf("[ALERTS] Cooldown: %lu ms, Check interval: %lu ms\n", 
+    DEBUG_PRINTLN("[ALERTS] Alert engine initialized");
+    DEBUG_PRINTF("[ALERTS] Cooldown: %lu ms, Check interval: %lu ms\n", 
                   ALERT_COOLDOWN_MS, ALERT_CHECK_INTERVAL_MS);
 }
 
@@ -61,7 +61,7 @@ static bool check_spread_alert(int symbol_idx, const SymbolState& state, unsigne
     // Check threshold
     if (state.spread_valid && state.spread_pct > config_get_spread_alert_pct()) {
         // Threshold exceeded - trigger alert
-        Serial.printf("[ALERTS] %s spread alert: %.2f%% exceeds threshold %.2f%%\n",
+        DEBUG_PRINTF("[ALERTS] %s spread alert: %.2f%% exceeds threshold %.2f%%\n",
                      state.symbol_name, state.spread_pct, config_get_spread_alert_pct());
         
         // Trigger beep (200ms on, 100ms off, 2 times)
@@ -97,7 +97,7 @@ static bool check_funding_alert(int symbol_idx, const SymbolState& state, unsign
     // Check threshold (absolute value for both positive and negative rates)
     if (state.funding.valid && fabs(state.funding.rate) > config_get_funding_alert_pct()) {
         // Threshold exceeded - trigger alert
-        Serial.printf("[ALERTS] %s funding alert: %.4f%% exceeds threshold %.4f%%\n",
+        DEBUG_PRINTF("[ALERTS] %s funding alert: %.4f%% exceeds threshold %.4f%%\n",
                      state.symbol_name, state.funding.rate * 100.0, 
                      config_get_funding_alert_pct() * 100.0);
         
@@ -117,7 +117,7 @@ static bool check_funding_alert(int symbol_idx, const SymbolState& state, unsign
 }
 
 void alert_task(void* pvParameters) {
-    Serial.println("[ALERTS] Alert task started");
+    DEBUG_PRINTLN("[ALERTS] Alert task started");
     
     while (true) {
         // Get current state snapshot

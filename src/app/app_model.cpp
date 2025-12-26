@@ -17,7 +17,7 @@ void model_init() {
     if (g_model_mutex == NULL) {
         g_model_mutex = xSemaphoreCreateMutex();
         if (g_model_mutex == NULL) {
-            Serial.println("[MODEL] ERROR: Failed to create mutex!");
+            DEBUG_PRINTLN("[MODEL] ERROR: Failed to create mutex!");
             return;
         }
     }
@@ -35,8 +35,8 @@ void model_init() {
     g_app_state.wifi_rssi = 0;
     strcpy(g_app_state.current_time, "--:--");
     
-    Serial.println("[MODEL] Initialized with thread-safe mutex");
-    Serial.printf("[MODEL] Selected symbol: %s\n", SYMBOL_NAMES[0]);
+    DEBUG_PRINTLN("[MODEL] Initialized with thread-safe mutex");
+    DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", SYMBOL_NAMES[0]);
 }
 
 AppState model_snapshot() {
@@ -46,7 +46,7 @@ AppState model_snapshot() {
         snapshot = g_app_state;  // Copy entire state
         xSemaphoreGive(g_model_mutex);
     } else {
-        Serial.println("[MODEL] WARNING: Failed to acquire mutex for snapshot");
+        DEBUG_PRINTLN("[MODEL] WARNING: Failed to acquire mutex for snapshot");
     }
     
     return snapshot;
@@ -54,7 +54,7 @@ AppState model_snapshot() {
 
 void model_update_symbol(int idx, const SymbolState& s) {
     if (idx < 0 || idx >= NUM_SYMBOLS) {
-        Serial.printf("[MODEL] ERROR: Invalid symbol index %d\n", idx);
+        DEBUG_PRINTF("[MODEL] ERROR: Invalid symbol index %d\n", idx);
         return;
     }
     
@@ -94,7 +94,7 @@ void model_update_symbol(int idx, const SymbolState& s) {
             if (old_count < PRICE_HISTORY_SIZE) {
                 g_app_state.symbols[idx].history_count = old_count + 1;
             }
-            Serial.printf("[MODEL] Added price %.2f to history[%d/%d] head=%d count=%d\n", 
+            DEBUG_PRINTF("[MODEL] Added price %.2f to history[%d/%d] head=%d count=%d\n", 
                           s.binance_quote.price, idx, old_head, 
                           g_app_state.symbols[idx].history_head, 
                           g_app_state.symbols[idx].history_count);
@@ -102,15 +102,15 @@ void model_update_symbol(int idx, const SymbolState& s) {
         
         xSemaphoreGive(g_model_mutex);
         
-        Serial.printf("[MODEL] Updated symbol[%d]: %s\n", idx, name);
+        DEBUG_PRINTF("[MODEL] Updated symbol[%d]: %s\n", idx, name);
     } else {
-        Serial.println("[MODEL] WARNING: Failed to acquire mutex for update");
+        DEBUG_PRINTLN("[MODEL] WARNING: Failed to acquire mutex for update");
     }
 }
 
 void model_set_selected(int idx) {
     if (idx < 0 || idx >= NUM_SYMBOLS) {
-        Serial.printf("[MODEL] ERROR: Invalid symbol index %d\n", idx);
+        DEBUG_PRINTF("[MODEL] ERROR: Invalid symbol index %d\n", idx);
         return;
     }
     
@@ -118,9 +118,9 @@ void model_set_selected(int idx) {
         g_app_state.selected_symbol_idx = idx;
         xSemaphoreGive(g_model_mutex);
         
-        Serial.printf("[MODEL] Selected symbol: %s\n", SYMBOL_NAMES[idx]);
+        DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", SYMBOL_NAMES[idx]);
     } else {
-        Serial.println("[MODEL] WARNING: Failed to acquire mutex for set_selected");
+        DEBUG_PRINTLN("[MODEL] WARNING: Failed to acquire mutex for set_selected");
     }
 }
 
@@ -131,7 +131,7 @@ int model_get_selected() {
         idx = g_app_state.selected_symbol_idx;
         xSemaphoreGive(g_model_mutex);
     } else {
-        Serial.println("[MODEL] WARNING: Failed to acquire mutex for get_selected");
+        DEBUG_PRINTLN("[MODEL] WARNING: Failed to acquire mutex for get_selected");
     }
     
     return idx;

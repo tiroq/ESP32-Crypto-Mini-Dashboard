@@ -75,13 +75,13 @@ static void log_stability_metrics() {
         perf_metrics.min_free_heap = free_heap;
     }
     
-    Serial.println("========== STABILITY METRICS ==========");
-    Serial.printf("[STABILITY] Free heap: %u bytes (min: %u)\n", free_heap, perf_metrics.min_free_heap);
-    Serial.printf("[STABILITY] Wi-Fi RSSI: %d dBm\n", rssi);
-    Serial.printf("[STABILITY] Last price fetch: %lu ms\n", perf_metrics.last_price_fetch_duration_ms);
-    Serial.printf("[STABILITY] Last funding fetch: %lu ms\n", perf_metrics.last_funding_fetch_duration_ms);
-    Serial.printf("[STABILITY] Uptime: %lu seconds\n", millis() / 1000);
-    Serial.println("======================================");
+    DEBUG_PRINTLN("========== STABILITY METRICS ==========");
+    DEBUG_PRINTF("[STABILITY] Free heap: %u bytes (min: %u)\n", free_heap, perf_metrics.min_free_heap);
+    DEBUG_PRINTF("[STABILITY] Wi-Fi RSSI: %d dBm\n", rssi);
+    DEBUG_PRINTF("[STABILITY] Last price fetch: %lu ms\n", perf_metrics.last_price_fetch_duration_ms);
+    DEBUG_PRINTF("[STABILITY] Last funding fetch: %lu ms\n", perf_metrics.last_funding_fetch_duration_ms);
+    DEBUG_PRINTF("[STABILITY] Uptime: %lu seconds\n", millis() / 1000);
+    DEBUG_PRINTLN("======================================");
 }
 
 /**
@@ -167,7 +167,7 @@ static int fetch_all_prices() {
             success_count++;
         } else {
             price_backoff[i].increase();
-            Serial.printf("[SCHEDULER] Price fetch failed for %s, backing off to %lums\n",
+            DEBUG_PRINTF("[SCHEDULER] Price fetch failed for %s, backing off to %lums\n",
                          sym->display_name, price_backoff[i].current_delay_ms);
         }
     }
@@ -214,7 +214,7 @@ static int fetch_all_funding() {
         } else {
             state.funding.valid = false;
             funding_backoff[i].increase();
-            Serial.printf("[SCHEDULER] Funding fetch failed for %s, backing off to %lums\n",
+            DEBUG_PRINTF("[SCHEDULER] Funding fetch failed for %s, backing off to %lums\n",
                          sym->display_name, funding_backoff[i].current_delay_ms);
         }
         
@@ -238,7 +238,7 @@ static int fetch_all_funding() {
  * Implements exponential backoff on failures per symbol.
  */
 static void net_task(void* parameter) {
-    Serial.println("[SCHEDULER] Net task started");
+    DEBUG_PRINTLN("[SCHEDULER] Net task started");
     
     unsigned long last_price_fetch = 0;
     unsigned long last_funding_fetch = 0;
@@ -247,11 +247,11 @@ static void net_task(void* parameter) {
     
     // Wait for Wi-Fi to connect before starting
     while (!net_wifi_is_connected()) {
-        Serial.println("[SCHEDULER] Waiting for Wi-Fi connection...");
+        DEBUG_PRINTLN("[SCHEDULER] Waiting for Wi-Fi connection...");
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
     
-    Serial.println("[SCHEDULER] Wi-Fi connected, starting periodic fetches");
+    DEBUG_PRINTLN("[SCHEDULER] Wi-Fi connected, starting periodic fetches");
     
     while (true) {
         unsigned long now = millis();
@@ -261,9 +261,9 @@ static void net_task(void* parameter) {
             // Fetch prices based on configured interval
             if (now - last_price_fetch >= config_get_price_refresh_ms()) {
                 last_price_fetch = now;
-                Serial.println("[SCHEDULER] Fetching prices...");
+                DEBUG_PRINTLN("[SCHEDULER] Fetching prices...");
                 int success = fetch_all_prices();
-                Serial.printf("[SCHEDULER] Price fetch: %d/%d successful\n", 
+                DEBUG_PRINTF("[SCHEDULER] Price fetch: %d/%d successful\n", 
                             success, config_get_num_symbols());
                 
                 // Mark data as fresh if at least one fetch succeeded
@@ -275,13 +275,13 @@ static void net_task(void* parameter) {
             // Fetch funding rates based on configured interval
             if (now - last_funding_fetch >= config_get_funding_refresh_ms()) {
                 last_funding_fetch = now;
-                Serial.println("[SCHEDULER] Fetching funding rates...");
+                DEBUG_PRINTLN("[SCHEDULER] Fetching funding rates...");
                 int success = fetch_all_funding();
-                Serial.printf("[SCHEDULER] Funding fetch: %d/%d successful\n",
+                DEBUG_PRINTF("[SCHEDULER] Funding fetch: %d/%d successful\n",
                             success, config_get_num_symbols());
             }
         } else {
-            Serial.println("[SCHEDULER] Wi-Fi disconnected, skipping fetch");
+            DEBUG_PRINTLN("[SCHEDULER] Wi-Fi disconnected, skipping fetch");
         }
         
         // Stale data detection (Task 8.2)
@@ -301,14 +301,14 @@ static void net_task(void* parameter) {
                 if (age_ms > stale_threshold_ms && age_ms < 4000000000UL) {
                     // Updated but too old (and not wrapped around)
                     any_stale = true;
-                    Serial.printf("[SCHEDULER] %s data is stale (age: %lu ms)\n",
+                    DEBUG_PRINTF("[SCHEDULER] %s data is stale (age: %lu ms)\n",
                                  snapshot.symbols[i].symbol_name, age_ms);
                 }
             }
         }
         
         if (any_stale && !snapshot.data_stale) {
-            Serial.println("[SCHEDULER] Marking data as STALE");
+            DEBUG_PRINTLN("[SCHEDULER] Marking data as STALE");
             model_set_stale(true);
         }
         
@@ -324,7 +324,7 @@ static void net_task(void* parameter) {
 }
 
 void scheduler_init() {
-    Serial.println("[SCHEDULER] Initializing task scheduler...");
+    DEBUG_PRINTLN("[SCHEDULER] Initializing task scheduler...");
     
     // Initialize storage subsystem (Task 10.1)
     hw_storage_init();
@@ -351,9 +351,9 @@ void scheduler_init() {
     );
     
     if (result != pdPASS) {
-        Serial.println("[SCHEDULER] ERROR: Failed to create net_task!");
+        DEBUG_PRINTLN("[SCHEDULER] ERROR: Failed to create net_task!");
     } else {
-        Serial.println("[SCHEDULER] Net task created successfully");
+        DEBUG_PRINTLN("[SCHEDULER] Net task created successfully");
     }
     
     // Create alert monitoring task (Task 9.1)
@@ -368,9 +368,9 @@ void scheduler_init() {
     );
     
     if (result != pdPASS) {
-        Serial.println("[SCHEDULER] ERROR: Failed to create alert_task!");
+        DEBUG_PRINTLN("[SCHEDULER] ERROR: Failed to create alert_task!");
     } else {
-        Serial.println("[SCHEDULER] Alert task created successfully");
+        DEBUG_PRINTLN("[SCHEDULER] Alert task created successfully");
     }
 }
 
@@ -378,26 +378,26 @@ void scheduler_stop() {
     if (net_task_handle != NULL) {
         vTaskDelete(net_task_handle);
         net_task_handle = NULL;
-        Serial.println("[SCHEDULER] Net task stopped");
+        DEBUG_PRINTLN("[SCHEDULER] Net task stopped");
     }
     
     if (alert_task_handle != NULL) {
         vTaskDelete(alert_task_handle);
         alert_task_handle = NULL;
-        Serial.println("[SCHEDULER] Alert task stopped");
+        DEBUG_PRINTLN("[SCHEDULER] Alert task stopped");
     }
 }
 
 void scheduler_pause() {
     if (net_task_handle != NULL) {
         vTaskSuspend(net_task_handle);
-        Serial.println("[SCHEDULER] Network task paused");
+        DEBUG_PRINTLN("[SCHEDULER] Network task paused");
     }
 }
 
 void scheduler_resume() {
     if (net_task_handle != NULL) {
         vTaskResume(net_task_handle);
-        Serial.println("[SCHEDULER] Network task resumed");
+        DEBUG_PRINTLN("[SCHEDULER] Network task resumed");
     }
 }
