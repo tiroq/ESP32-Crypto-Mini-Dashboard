@@ -87,10 +87,11 @@
   - **Flash impact: +30,756 bytes (89.8% → 92.2%)**
   - **Trade-offs**: LVGL buffer reduced (40→20 rows), heap reduced (48KB→40KB)
 - [ ] **Implement a web interface for remote monitoring and configuration**
-  - ❌ **NOT FEASIBLE** - Requires ~150KB flash, only ~102KB available
-  - Would need to remove screenshots (-1KB), charts (-2KB), or other features
-  - Alternative: Use existing OTA page for basic monitoring
-  - WebSocket real-time updates would add another ~20-30KB
+  - ✅ **Now feasible!** Default build has ~265KB available (HTTP mode)
+  - Requires ~150KB flash for web dashboard
+  - WebSocket real-time updates would add ~20-30KB (still fits)
+  - Could integrate with existing OTA page or create separate dashboard
+  - Remaining space allows for localization or additional features
 - [ ] **Add support for different languages (localization)**
   - Requires ~50-100KB flash space
   - Multi-language strings
