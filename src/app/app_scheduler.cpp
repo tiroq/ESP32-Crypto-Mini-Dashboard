@@ -246,13 +246,20 @@ static void net_task(void* parameter) {
     unsigned long last_stability_log = 0;  // Task 11.1
     const uint32_t STABILITY_LOG_INTERVAL_MS = 60000;  // Log every 60 seconds
     
-    // Wait for Wi-Fi to connect before starting
-    while (!net_wifi_is_connected()) {
+    // Wait for Wi-Fi to connect before starting (with timeout)
+    int wifi_wait_count = 0;
+    const int MAX_WIFI_WAIT = 30; // 30 seconds max wait
+    while (!net_wifi_is_connected() && wifi_wait_count < MAX_WIFI_WAIT) {
         DEBUG_PRINTLN("[SCHEDULER] Waiting for Wi-Fi connection...");
         vTaskDelay(pdMS_TO_TICKS(1000));
+        wifi_wait_count++;
     }
     
-    DEBUG_PRINTLN("[SCHEDULER] Wi-Fi connected, starting periodic fetches");
+    if (!net_wifi_is_connected()) {
+        DEBUG_PRINTLN("[SCHEDULER] WARNING: Starting without WiFi, will retry on each cycle");
+    } else {
+        DEBUG_PRINTLN("[SCHEDULER] Wi-Fi connected, starting periodic fetches");
+    }
     
     while (true) {
         unsigned long now = millis();
