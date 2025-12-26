@@ -215,11 +215,10 @@ Required in `platformio.ini`:
 
 ## Example Workflow
 
-```bash
-# Terminal 1 - Monitor ESP32 (optional)
-pio device monitor --baud 115200
+### Basic Usage
 
-# Terminal 2 - Take screenshot and download
+```bash
+# Take screenshot and download in one command
 python3 download_screenshot.py -s
 ```
 
@@ -228,18 +227,71 @@ python3 download_screenshot.py -s
 Connecting to /dev/cu.usbserial-10 at 115200...
 Taking screenshot...
 Screenshot taken successfully!
+
 Sending DOWNLOAD command...
 File size: 230454 bytes
 Receiving data chunks...
+Progress: 2% (5312/230454 bytes, 83 chunks)
+Progress: 50% (116672/230454 bytes, 1823 chunks)
 Progress: 100% (230454/230454 bytes, 3601 chunks)
+
+Received DATA_END marker
+Received 230454 bytes in 3601 chunks
 ✓ Saved dashboard.bmp (230454 bytes)
 ```
 
 **View the screenshot:**
 ```bash
-open dashboard.bmp  # macOS
-xdg-open dashboard.bmp  # Linux
-start dashboard.bmp  # Windows
+open dashboard.bmp              # macOS
+xdg-open dashboard.bmp         # Linux  
+start dashboard.bmp            # Windows
+```
+
+**Result:** You'll see a 320×240 image showing the crypto dashboard with:
+- Bitcoin, Ethereum, and Solana price cards with Binance/Coinbase prices
+- Funding rate indicators and delta percentages
+- Network status and WiFi signal strength
+- Exact representation of the LVGL UI at capture moment
+
+### Two-Step Process
+
+```bash
+# Terminal 1 - Monitor ESP32
+pio device monitor --baud 115200
+
+# Terminal 2 - Take screenshot manually, then download
+# In serial monitor, type:
+SCREENSHOT
+
+# Wait for confirmation, then download
+python3 download_screenshot.py
+```
+
+### With Device Monitoring
+
+```bash
+# Terminal 1 - Watch device logs
+pio device monitor --baud 115200
+
+# Observe the capture process:
+# [CMD] Taking screenshot...
+# [SCHEDULER] Network task paused
+# [CMD] Deleted old screenshot
+# [SCREENSHOT] Taking screenshot: /dashboard.bmp
+# [SCREENSHOT] Free heap: 157844 bytes
+# [SCREENSHOT] Display: 320x240 pixels
+# [SCREENSHOT] BMP file size: 230454 bytes
+# [SCREENSHOT] SPIFFS: 1318001 total, 0 used, 1318001 available
+# [SCREENSHOT] File opened successfully
+# [SCREENSHOT] Headers written, capturing screen in 6 passes...
+# [SCREENSHOT] Progress: 100%
+# [SCREENSHOT] Display captured successfully
+# [SCREENSHOT] Saved: /dashboard.bmp (230454 bytes)
+# [SCHEDULER] Network task resumed
+# [CMD] Screenshot saved to /dashboard.bmp
+
+# Terminal 2 - Download the file
+python3 download_screenshot.py
 ```
 
 ## Advanced Usage
@@ -250,29 +302,64 @@ start dashboard.bmp  # Windows
 # Connect to serial monitor
 pio device monitor --baud 115200
 
-# Take screenshot
-SCREENSHOT
-
-# List files
-LIST
-
-# Download (then run Python script to decode)
-DOWNLOAD
+# Available commands:
+SCREENSHOT    # Capture current display
+LIST          # Show SPIFFS files  
+DOWNLOAD      # Transfer file (use Python script to decode hex output)
 ```
 
-### Integration Example
+**Example Session:**
+```
+> LIST
+SPIFFS Files:
+  dashboard.bmp - 230454 bytes
+OK
 
-Add to your code for programmatic screenshots:
+> SCREENSHOT
+[CMD] Taking screenshot...
+[SCHEDULER] Network task paused
+[CMD] Deleted old screenshot
+[SCREENSHOT] Taking screenshot: /dashboard.bmp
+[SCREENSHOT] Progress: 100%
+[SCREENSHOT] Saved: /dashboard.bmp (230454 bytes)
+[SCHEDULER] Network task resumed
+[CMD] Screenshot saved to /dashboard.bmp
+```
+
+### Programmatic Integration
+
+Add screenshot functionality to your application code:
 
 ```cpp
 #include "ui/ui_screenshot.h"
 
-// Triggered by button press or event
+// Example: Triggered by button press
 void onScreenshotButton() {
     if (ui_take_screenshot("/dashboard.bmp")) {
-        Serial.println("[APP] Screenshot ready for download");
+        Serial.println("[APP] Screenshot ready - use Python script to download");
     } else {
-        Serial.println("[APP] Screenshot failed");
+        Serial.println("[APP] Screenshot failed - check logs");
+    }
+}
+
+// Example: Automatic screenshot on error
+void onCriticalError(const char* error_msg) {
+    Serial.printf("[ERROR] %s\n", error_msg);
+    
+    // Capture screen state for debugging
+    ui_take_screenshot("/error.bmp");
+    
+    // Continue error handling...
+}
+
+// Example: Periodic screenshots for monitoring
+void loop() {
+    static unsigned long last_screenshot = 0;
+    const unsigned long screenshot_interval = 300000; // 5 minutes
+    
+    if (millis() - last_screenshot > screenshot_interval) {
+        ui_take_screenshot("/dashboard.bmp");
+        last_screenshot = millis();
     }
 }
 ```
@@ -280,47 +367,39 @@ void onScreenshotButton() {
 ### Python Script Options
 
 ```bash
-# Screenshot + download
+# Screenshot + download (recommended)
 python3 download_screenshot.py -s
 
-# Download only
+# Download existing screenshot only  
 python3 download_screenshot.py
 
 # Specify custom serial port
 python3 download_screenshot.py -s -p /dev/ttyUSB0
 
-# Help
+# Show help
 python3 download_screenshot.py --help
-``apshot (requires 153 KB heap)
-- **Serial Speed**: Transfer limited to ~12 KB/s effective (hex encoding doubles data size)
-- **Single File**: Only one screenshot stored at a time (auto-deleted on next capture)
-- **No Compression**: BMP format used (uncompressed, large file size)
+```
 
-## Future Enhancements
+### Development Workflow
 
-- [ ] JPEG compression to reduce file size (~10-20 KB vs 230 KB)
-- [ ] Faster transfer via binary protocol or HTTP download
-- [ ] Timestamp-based filenames for multiple screenshots
-- [ ] Lower resolution option (160×120) for testing
-- [ ] Direct file write during capture (eliminate chunk buffer)
-- [ ] HTTP server endpoint for web-based download
-- [ ] Automatic periodic screenshots with rotation
+**During UI development:**
+```bash
+# Make UI changes in code
+vim src/ui/ui_dashboard.cpp
 
-## Troubleshooting
+# Upload and capture result
+pio run -t upload
+sleep 3  # Wait for startup
+python3 download_screenshot.py -s
 
-### "SPIFFS mount failed"
-- SPIFFS partition may not exist - check partition table
-- Filesystem may be corrupted - use `SPIFFS.format()` to reinitialize
+# Review the screenshot
+open dashboard.bmp
+```
 
-### "lv_snapshot_take failed"
-- Insufficient heap memory - check with `ESP.getFreeHeap()`  
-- Invalid screen object - ensure UI is fully initialized
+**For bug reports:**
+```bash
+# Reproduce issue, then capture
+python3 download_screenshot.py -s
 
-### "File not found after write"
-- SPIFFS full - check with `SPIFFS.totalBytes()` and `SPIFFS.usedBytes()`
-- Write error - verify SPIFFS is mounted and writable
-
-### Build Errors "lv_snapshot_take not declared"
-- `LV_USE_SNAPSHOT` not enabled - check `lv_conf.h` and build flags
-- LVGL library cache issue - delete `.pio/libdeps` and rebuild
-- Missing include path - verify `-I./` in `build_flags`
+# Attach dashboard.bmp to GitHub issue
+```
