@@ -336,15 +336,15 @@ Add screenshot functionality to your application code:
 // Example: Triggered by button press
 void onScreenshotButton() {
     if (ui_take_screenshot("/dashboard.bmp")) {
-        Serial.println("[APP] Screenshot ready - use Python script to download");
+        DEBUG_PRINTLN("[APP] Screenshot ready - use Python script to download");
     } else {
-        Serial.println("[APP] Screenshot failed - check logs");
+        DEBUG_PRINTLN("[APP] Screenshot failed - check logs");
     }
 }
 
 // Example: Automatic screenshot on error
 void onCriticalError(const char* error_msg) {
-    Serial.printf("[ERROR] %s\n", error_msg);
+    DEBUG_PRINTF("[ERROR] %s\n", error_msg);
     
     // Capture screen state for debugging
     ui_take_screenshot("/error.bmp");

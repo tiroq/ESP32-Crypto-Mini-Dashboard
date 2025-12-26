@@ -37,7 +37,7 @@ Edit [`src/config.h`](src/config.h) to enable/disable features:
 | Feature | Flash Savings | What's Removed |
 |---------|--------------|----------------|
 | **OTA disabled** | ~68KB | WebServer library, Update library, OTA UI screen, HTTP upload page |
-| **Serial disabled** | ~6KB | All debug output (Serial.println, printf, etc.) |
+| **Serial disabled** | ~6KB | All debug output (DEBUG_PRINTLN, printf, etc.) |
 | **Screenshot disabled** | ~1KB | SPIFFS screenshot code, BMP encoder, serial download commands |
 | **All disabled** | **~75KB** | All of the above |
 
@@ -131,9 +131,9 @@ When `ENABLE_SERIAL` is enabled, use these macros instead of direct Serial calls
 
 ```cpp
 DEBUG_BEGIN(115200);           // Serial.begin(115200)
-DEBUG_PRINTLN("message");      // Serial.println("message")
+DEBUG_PRINTLN("message");      // DEBUG_PRINTLN("message")
 DEBUG_PRINT(value);            // Serial.print(value)
-DEBUG_PRINTF("fmt", args);     // Serial.printf("fmt", args)
+DEBUG_PRINTF("fmt", args);     // DEBUG_PRINTF("fmt", args)
 ```
 
 When `ENABLE_SERIAL = 0`, these compile to nothing `((void)0)`.
