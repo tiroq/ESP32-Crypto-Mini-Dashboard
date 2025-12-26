@@ -1,4 +1,5 @@
 #include "net_ota.h"
+#include "net_dashboard.h"
 #include "../config.h"
 
 #if ENABLE_OTA
@@ -19,8 +20,15 @@ const char upload_html[] PROGMEM = R"(
 <style>body{font-family:Arial;text-align:center;background:#181A20;color:#F0B90B;padding:20px}
 h1{color:#F0B90B}input{margin:20px 0;padding:10px}
 button{background:#F0B90B;color:#000;border:none;padding:15px 30px;font-size:16px;cursor:pointer}
-button:hover{background:#FFD700}</style></head>
+button:hover{background:#FFD700}
+.nav{margin:20px 0}
+.nav a{background:#2B3139;color:#F0F0F0;padding:10px 20px;text-decoration:none;border-radius:4px;margin:0 5px}
+.nav a:hover{background:#3B4149}</style></head>
 <body><h1>OTA Update</h1><p>ESP32 Crypto Dashboard</p>
+<div class="nav">
+<a href="/dashboard">Dashboard</a>
+<a href="/">OTA Update</a>
+</div>
 <form method="POST" action="/update" enctype="multipart/form-data">
 <input type="file" name="firmware" accept=".bin" required><br>
 <button type="submit">Upload Firmware</button></form></body></html>
@@ -37,6 +45,9 @@ bool ota_init() {
     server.on("/", HTTP_GET, []() {
         server.send(200, "text/html", upload_html);
     });
+
+    // Initialize dashboard routes
+    dashboard_init(&server);
 
     // Handle firmware upload
     server.on("/update", HTTP_POST, 
