@@ -25,6 +25,7 @@ lv_obj_t* ui_screens_create_dashboard();
 lv_obj_t* ui_screens_create_alerts();
 lv_obj_t* ui_screens_create_settings();
 lv_obj_t* ui_screens_create_chart();
+lv_obj_t* ui_screens_create_ota();
 
 // Get widget references for data binding
 DashboardWidgets ui_screens_get_dashboard_widgets();

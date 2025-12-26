@@ -1,12 +1,15 @@
 #include "ui_screens.h"
 #include "../app/app_model.h"
 #include "../app/app_config.h"
+#include "../net/net_ota.h"
+#include <WiFi.h>
 
 // Screen and widget references
 static lv_obj_t* screen_dashboard = NULL;
 static lv_obj_t* screen_alerts = NULL;
 static lv_obj_t* screen_settings = NULL;
 static lv_obj_t* screen_chart = NULL;
+static lv_obj_t* screen_ota = NULL;
 
 // Dashboard widget references (exposed for ui_bindings)
 static lv_obj_t* lbl_symbol = NULL;
@@ -74,6 +77,14 @@ static void btn_settings_clicked(lv_event_t* e) {
     if (screen_settings) {
         lv_scr_load_anim(screen_settings, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 0, false);
     }
+}
+
+static void btn_ota_clicked(lv_event_t* e) {
+    Serial.println("[UI] OTA button clicked - switching to OTA screen");
+    if (!screen_ota) {
+        screen_ota = ui_screens_create_ota();
+    }
+    lv_scr_load_anim(screen_ota, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 0, false);
 }
 
 static void btn_back_clicked(lv_event_t* e) {
@@ -203,15 +214,15 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_pad_all(footer, 4, 0);
     lv_obj_clear_flag(footer, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Button dimensions (large touch targets)
-    const int btn_width = 74;
+    // Button dimensions (5 buttons: Prev, Next, Chart, OTA, Settings)
+    const int btn_width = 58;
     const int btn_height = 42;
-    const int btn_gap = 2;
+    const int btn_gap = 4;
 
     // Prev button
     lv_obj_t* btn_prev = lv_btn_create(footer);
     lv_obj_set_size(btn_prev, btn_width, btn_height);
-    lv_obj_set_pos(btn_prev, 2, 4);
+    lv_obj_set_pos(btn_prev, 4, 4);
     lv_obj_set_style_bg_color(btn_prev, lv_color_hex(0x2B3139), 0);
     lv_obj_add_event_cb(btn_prev, btn_prev_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_prev = lv_label_create(btn_prev);
@@ -221,7 +232,7 @@ lv_obj_t* ui_screens_create_dashboard() {
     // Next button
     lv_obj_t* btn_next = lv_btn_create(footer);
     lv_obj_set_size(btn_next, btn_width, btn_height);
-    lv_obj_set_pos(btn_next, 2 + btn_width + btn_gap, 4);
+    lv_obj_set_pos(btn_next, 4 + (btn_width + btn_gap), 4);
     lv_obj_set_style_bg_color(btn_next, lv_color_hex(0x2B3139), 0);
     lv_obj_add_event_cb(btn_next, btn_next_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_next = lv_label_create(btn_next);
@@ -231,17 +242,27 @@ lv_obj_t* ui_screens_create_dashboard() {
     // Chart button
     lv_obj_t* btn_chart = lv_btn_create(footer);
     lv_obj_set_size(btn_chart, btn_width, btn_height);
-    lv_obj_set_pos(btn_chart, 2 + (btn_width + btn_gap) * 2, 4);
+    lv_obj_set_pos(btn_chart, 4 + (btn_width + btn_gap) * 2, 4);
     lv_obj_set_style_bg_color(btn_chart, lv_color_hex(0x2B3139), 0);
     lv_obj_add_event_cb(btn_chart, btn_chart_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_chart = lv_label_create(btn_chart);
     lv_label_set_text(lbl_chart, "Chart");
     lv_obj_center(lbl_chart);
 
+    // OTA button
+    lv_obj_t* btn_ota = lv_btn_create(footer);
+    lv_obj_set_size(btn_ota, btn_width, btn_height);
+    lv_obj_set_pos(btn_ota, 4 + (btn_width + btn_gap) * 3, 4);
+    lv_obj_set_style_bg_color(btn_ota, lv_color_hex(0x2B3139), 0);
+    lv_obj_add_event_cb(btn_ota, btn_ota_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_ota = lv_label_create(btn_ota);
+    lv_label_set_text(lbl_ota, "OTA");
+    lv_obj_center(lbl_ota);
+
     // Settings button
     lv_obj_t* btn_settings = lv_btn_create(footer);
     lv_obj_set_size(btn_settings, btn_width, btn_height);
-    lv_obj_set_pos(btn_settings, 2 + (btn_width + btn_gap) * 3, 4);
+    lv_obj_set_pos(btn_settings, 4 + (btn_width + btn_gap) * 4, 4);
     lv_obj_set_style_bg_color(btn_settings, lv_color_hex(0xF0B90B), 0);
     lv_obj_add_event_cb(btn_settings, btn_settings_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_settings = lv_label_create(btn_settings);
@@ -730,5 +751,67 @@ lv_obj_t* ui_screens_create_chart() {
     }
     
     Serial.println("[UI] Chart screen created");
+    return screen;
+}
+
+lv_obj_t* ui_screens_create_ota() {
+    Serial.println("[UI] Creating OTA screen...");
+    
+    lv_obj_t* screen = lv_obj_create(NULL);
+    lv_obj_set_style_bg_color(screen, lv_color_hex(0x181A20), 0);
+    
+    // Store screen reference
+    screen_ota = screen;
+    
+    // Back button
+    lv_obj_t* btn_back = lv_btn_create(screen);
+    lv_obj_set_size(btn_back, 70, 40);
+    lv_obj_set_pos(btn_back, 5, 5);
+    lv_obj_set_style_bg_color(btn_back, lv_color_hex(0x2B3139), 0);
+    lv_obj_add_event_cb(btn_back, btn_back_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_back = lv_label_create(btn_back);
+    lv_label_set_text(lbl_back, "Back");
+    lv_obj_center(lbl_back);
+    
+    // Title
+    lv_obj_t* lbl_title = lv_label_create(screen);
+    lv_label_set_text(lbl_title, "OTA Update");
+    lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xF0B90B), 0);
+    lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_24, 0);
+    lv_obj_set_pos(lbl_title, 90, 10);
+    
+    // Instructions
+    lv_obj_t* lbl_info = lv_label_create(screen);
+    lv_label_set_text(lbl_info, "Update firmware via web browser:");
+    lv_obj_set_style_text_color(lbl_info, lv_color_hex(0xEAECEF), 0);
+    lv_obj_set_style_text_font(lbl_info, &lv_font_montserrat_14, 0);
+    lv_obj_set_pos(lbl_info, 10, 60);
+    
+    // IP Address label
+    char ip_text[100];
+    if (WiFi.status() == WL_CONNECTED) {
+        snprintf(ip_text, sizeof(ip_text), "http://%s:8080", WiFi.localIP().toString().c_str());
+    } else {
+        snprintf(ip_text, sizeof(ip_text), "WiFi not connected");
+    }
+    
+    lv_obj_t* lbl_ip = lv_label_create(screen);
+    lv_label_set_text(lbl_ip, ip_text);
+    lv_obj_set_style_text_color(lbl_ip, lv_color_hex(0xF0B90B), 0);
+    lv_obj_set_style_text_font(lbl_ip, &lv_font_montserrat_24, 0);
+    lv_obj_set_pos(lbl_ip, 10, 90);
+    
+    // Steps
+    lv_obj_t* lbl_steps = lv_label_create(screen);
+    lv_label_set_text(lbl_steps, 
+        "1. Open URL in browser\n"
+        "2. Select .bin firmware file\n"
+        "3. Click Upload Firmware\n"
+        "4. Wait for device to reboot");
+    lv_obj_set_style_text_color(lbl_steps, lv_color_hex(0xEAECEF), 0);
+    lv_obj_set_style_text_font(lbl_steps, &lv_font_montserrat_14, 0);
+    lv_obj_set_pos(lbl_steps, 10, 135);
+    
+    Serial.println("[UI] OTA screen created");
     return screen;
 }

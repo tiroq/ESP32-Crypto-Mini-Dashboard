@@ -16,6 +16,7 @@
 #include "net/net_http.h"
 #include "net/net_binance.h"
 #include "net/net_coinbase.h"
+#include "net/net_ota.h"
 
 // Test flag to run HTTP test once
 static bool http_test_done = false;
@@ -53,6 +54,13 @@ void setup() {
     // Initialize SPIFFS for screenshots
     ui_screenshot_init();
 
+    // Initialize OTA update server
+    if (ota_init()) {
+        Serial.println("[MAIN] OTA server initialized");
+    } else {
+        Serial.println("[MAIN] OTA server failed to start");
+    }
+
     Serial.println("[MAIN] Setup complete\n");
     
     // Start scheduler tasks (net_task for periodic fetching)
@@ -65,6 +73,9 @@ void loop() {
     
     // Update model with Wi-Fi status every loop iteration
     model_update_wifi(net_wifi_is_connected(), net_wifi_rssi());
+    
+    // Handle OTA server requests
+    ota_handle();
     
     // Check for serial commands (SCREENSHOT, DOWNLOAD, LIST)
     spiffs_check_download_command();

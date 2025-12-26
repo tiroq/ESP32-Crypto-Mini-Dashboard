@@ -6,7 +6,7 @@
 // Physical display: 240x320 portrait, rotated to 320x240 landscape
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
-#define LVGL_BUFFER_SIZE (SCREEN_WIDTH * 40)
+#define LVGL_BUFFER_SIZE (SCREEN_WIDTH * 20)  // Reduced from 40 rows to 20 for OTA
 #define TFT_BL 21  // Backlight pin
 
 // TFT and LVGL objects
