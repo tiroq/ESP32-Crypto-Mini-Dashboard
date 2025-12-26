@@ -1,4 +1,5 @@
 #include "app_scheduler.h"
+#include "../config.h"
 #include "app_config.h"
 #include "app_model.h"
 #include "app_math.h"

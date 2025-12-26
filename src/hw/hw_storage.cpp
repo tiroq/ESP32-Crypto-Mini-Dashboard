@@ -1,4 +1,5 @@
 #include "hw_storage.h"
+#include "../config.h"
 #include "../app/app_config.h"
 #include <Preferences.h>
 

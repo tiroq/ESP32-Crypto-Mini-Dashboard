@@ -1,4 +1,5 @@
 #include "app_config.h"
+#include "../config.h"
 #include "../hw/hw_storage.h"
 
 // Global configuration instance
