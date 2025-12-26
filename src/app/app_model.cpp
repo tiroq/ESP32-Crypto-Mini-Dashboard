@@ -1,4 +1,5 @@
 #include "app_model.h"
+#include "../config.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 

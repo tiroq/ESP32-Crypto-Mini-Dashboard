@@ -1,4 +1,5 @@
 #include "app_alerts.h"
+#include "../config.h"
 #include "app_config.h"
 #include "app_model.h"
 #include "../hw/hw_alert.h"
