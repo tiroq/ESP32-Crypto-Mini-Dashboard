@@ -27,7 +27,7 @@ Dashboard:
 - Configurable alert thresholds
 - Persistent settings (NVS storage)
 - **OTA firmware updates** - Update firmware via web browser (HTTP)
-- **Screenshot capture** - Capture UI via serial commands and download as BMP files
+- **Screenshot capture (optional)** - Capture UI via serial commands (disabled by default)
 - **Compile-time feature flags** - Disable unused features to save flash space
 
 ### Feature Flags

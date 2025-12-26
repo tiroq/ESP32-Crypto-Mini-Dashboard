@@ -14,8 +14,8 @@
 #define ENABLE_SERIAL 1
 
 // Enable screenshot feature (save screen to SPIFFS via serial commands)
-// Savings when disabled: ~1-2KB flash
-#define ENABLE_SCREENSHOT 1
+// Cost when enabled: ~1KB flash (disabled by default)
+#define ENABLE_SCREENSHOT 0
 // Enable HTTPS for API requests (uses WiFiClientSecure with mbedTLS)
 // Cost when enabled: ~131KB flash (HTTP is default, saves space)
 // Note: HTTP is less secure but functional for public API endpoints
