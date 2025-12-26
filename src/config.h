@@ -27,12 +27,12 @@
 #if ENABLE_SERIAL
     // Serial is enabled - use normal Serial object
     #define DEBUG_PRINT(...) Serial.print(__VA_ARGS__)
-    #define DEBUG_PRINTLN(...) DEBUG_PRINTLN(__VA_ARGS__)
-    #define DEBUG_PRINTF(...) DEBUG_PRINTF(__VA_ARGS__)
+    #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
+    #define DEBUG_PRINTF(...) Serial.printf(__VA_ARGS__)
     #define DEBUG_BEGIN(baud) Serial.begin(baud)
     
     // LOG macro with F() for flash string storage (saves RAM)
-    #define LOG(msg) DEBUG_PRINTLN(F(msg))
+    #define LOG(msg) Serial.println(F(msg))
 #else
     // Serial is disabled - use dummy implementations (compile to nothing)
     #define DEBUG_PRINT(...) ((void)0)
