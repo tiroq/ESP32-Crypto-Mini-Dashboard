@@ -81,12 +81,19 @@ void ui_bindings_apply(const AppState& state) {
         }
     }
     
-    // === UPDATE TIME (show as "Updated: HH:MM") ===
-    if (g_widgets.lbl_time && strcmp(g_cache.time_str, state.current_time) != 0) {
-        char update_text[32];
-        snprintf(update_text, sizeof(update_text), "Updated: %s", state.current_time);
-        lv_label_set_text(g_widgets.lbl_time, update_text);
-        strncpy(g_cache.time_str, state.current_time, sizeof(g_cache.time_str) - 1);
+    // === UPDATE TIME (show seconds since last update) ===
+    if (g_widgets.lbl_time) {
+        unsigned long now = millis();
+        unsigned long last_update = state.symbols[state.selected_symbol_idx].last_update_ms;
+        
+        if (last_update > 0) {
+            unsigned long age_s = (now - last_update) / 1000;
+            char time_text[16];
+            snprintf(time_text, sizeof(time_text), "Last: %lus", age_s);
+            lv_label_set_text(g_widgets.lbl_time, time_text);
+        } else {
+            lv_label_set_text(g_widgets.lbl_time, "Last: --s");
+        }
     }
     
     // === HANDLE STALE DATA ===

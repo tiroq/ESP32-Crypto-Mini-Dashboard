@@ -113,9 +113,9 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_text_font(lbl_wifi, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_wifi, 90, 4);
 
-    // Last update time (right)
+    // Last update time (right) - shows seconds since update
     lbl_time = lv_label_create(header);
-    lv_label_set_text(lbl_time, "Updated: --:--");
+    lv_label_set_text(lbl_time, "Last: --s");
     lv_obj_set_style_text_color(lbl_time, lv_color_hex(0x888888), 0);
     lv_obj_set_style_text_font(lbl_time, &lv_font_montserrat_14, 0);
     lv_obj_align(lbl_time, LV_ALIGN_TOP_RIGHT, -4, 4);
