@@ -31,7 +31,7 @@ static lv_obj_t* lbl_funding = NULL;
 static void btn_prev_clicked(lv_event_t* e) {
     DEBUG_PRINTLN("[UI] Prev button clicked");
     int current = model_get_selected();
-    int next = (current - 1 + 3) % 3;  // Cycle: 0->2, 2->1, 1->0
+    int next = config_get_prev_enabled_symbol(current);  // Skip disabled symbols
     model_set_selected(next);
     
     // Update symbol label
@@ -43,7 +43,7 @@ static void btn_prev_clicked(lv_event_t* e) {
 static void btn_next_clicked(lv_event_t* e) {
     DEBUG_PRINTLN("[UI] Next button clicked");
     int current = model_get_selected();
-    int next = (current + 1) % 3;  // Cycle: 0->1, 1->2, 2->0
+    int next = config_get_next_enabled_symbol(current);  // Skip disabled symbols
     model_set_selected(next);
     
     // Update symbol label
