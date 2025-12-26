@@ -48,8 +48,8 @@ struct BackoffState {
     }
 };
 
-static BackoffState price_backoff[3];    // One per symbol
-static BackoffState funding_backoff[3];  // One per symbol
+static BackoffState price_backoff[MAX_SYMBOLS];    // One per symbol
+static BackoffState funding_backoff[MAX_SYMBOLS];  // One per symbol
 
 // Performance tracking for stability monitoring (Task 11.1)
 struct PerformanceMetrics {
@@ -99,6 +99,11 @@ static int fetch_all_prices() {
     unsigned long now = millis();
     
     for (int i = 0; i < cfg.num_symbols; i++) {
+        // Skip disabled symbols
+        if (!config_is_symbol_enabled(i)) {
+            continue;
+        }
+        
         // Check if we should retry this symbol (backoff)
         if (!price_backoff[i].should_retry(now)) {
             continue;
@@ -193,6 +198,11 @@ static int fetch_all_funding() {
     unsigned long now = millis();
     
     for (int i = 0; i < cfg.num_symbols; i++) {
+        // Skip disabled symbols
+        if (!config_is_symbol_enabled(i)) {
+            continue;
+        }
+        
         // Check if we should retry this symbol (backoff)
         if (!funding_backoff[i].should_retry(now)) {
             continue;
