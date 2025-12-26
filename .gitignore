@@ -33,3 +33,4 @@
 .pio/
 src/secrets.h
 .venv/
+*.log
