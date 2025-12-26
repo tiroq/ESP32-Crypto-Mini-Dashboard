@@ -18,7 +18,10 @@ Edit [`src/config.h`](src/config.h) to enable/disable features:
 // Enable screenshot feature (save screen to SPIFFS via serial commands)
 // Savings when disabled: ~1-2KB flash
 #define ENABLE_SCREENSHOT 1
-```
+// Enable HTTPS for API requests (uses WiFiClientSecure with mbedTLS)
+// Cost when enabled: ~131KB flash (HTTP is default, saves space)
+// Note: HTTP is less secure but functional for public API endpoints
+#define ENABLE_HTTPS 0```
 
 ## Flash Savings by Feature
 
@@ -40,27 +43,40 @@ Edit [`src/config.h`](src/config.h) to enable/disable features:
 
 ## Current Flash Usage
 
-**With all features enabled (default):**
+**Default build** (HTTP, OTA, Serial, Screenshot enabled):
+- Flash: 82.1% (1,076,481 / 1,310,720 bytes)
+- RAM: 31.4% (102,892 bytes)
+- Available flash: **~234.2KB**
+- Enables: Most features while maintaining good flash headroom
+
+**With HTTPS enabled:**
 - Flash: 92.2% (1,207,901 / 1,310,720 bytes)
 - RAM: 31.7% (103,848 bytes)
-- Available flash: ~102.8KB
+- Available flash: ~102.8KB (131KB less than default)
+- Use when: Secure connections required
 
-**With all features disabled:**
-- Flash: 86.4% (1,132,993 / 1,310,720 bytes)
-- RAM: 31.5% (103,192 bytes)
-- Available flash: **~177.7KB** (74KB more than default)
-- Enables: Larger web interface, additional widgets, more fonts
+**Minimal build** (HTTP only, all extras disabled):
+- Flash: ~72% (~945,000 bytes)
+- RAM: ~31% (~102KB)
+- Available flash: **~366KB**
+- Enables: Extensive web interface, WiFi AP mode, multiple languages
 
 ## How to Disable Features
 
-### Example 1: Disable OTA (Free ~30KB)
+### Example 1: Enable HTTPS (Costs ~131KB)
 
 ```cpp
 // In src/config.h
-#define ENABLE_OTA 0  // Changed from 1 to 0
+#define ENABLE_HTTPS 1  // Changed from 0 to 1
 ```
 
-**Result:** OTA button disappears from dashboard, WebServer and Update libraries not compiled
+**Result:** API calls use HTTPS instead of HTTP, adds WiFiClientSecure and mbedTLS
+
+**When to enable:**
+- Production deployments requiring encryption
+- Untrusted networks
+- Corporate/enterprise environments
+- Security compliance requirements
 
 ### Example 2: Disable Serial Debug (Free ~5-10KB)
 
@@ -80,16 +96,34 @@ Edit [`src/config.h`](src/config.h) to enable/disable features:
 
 **Result:** SPIFFS screenshot code not compiled, serial commands disabled
 
-### Example 4: Minimal Build (Free ~35-40KB)
+### Example 4: Disable HTTPS (Free ~131KB) ⭐ **BIGGEST SAVINGS**
+
+```cpp
+// In src/config.h
+#define ENABLE_HTTPS 0  // Changed from 1 to 0
+```
+
+**Result:** API calls use plain HTTP instead of HTTPS, WiFiClientSecure and mbedTLS not compiled
+
+**⚠️ Security Note:** HTTP is unencrypted. Only suitable for:
+- Public API endpoints (prices are public data)
+- Non-sensitive data
+- Development/testing environments
+- Networks you trust
+
+**✅ Safe for this project:** Binance and Coinbase APIs support HTTP and only return public price data.
+
+### Example 4: Minimal Build (Free ~75KB from default)
 
 ```cpp
 // In src/config.h
 #define ENABLE_OTA 0
 #define ENABLE_SERIAL 0
 #define ENABLE_SCREENSHOT 0
+// ENABLE_HTTPS already 0 by default
 ```
 
-**Result:** Maximum flash savings for embedded deployment
+**Result:** HTTP-only build with no extras, ~366KB available for custom features
 
 ## Debug Macros
 
