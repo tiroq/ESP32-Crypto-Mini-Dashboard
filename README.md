@@ -20,6 +20,7 @@ A real-time cryptocurrency price monitoring dashboard for the ESP32-2432S028 (Ch
 - Touch navigation between symbols and screens
 - Configurable alert thresholds
 - Persistent settings (NVS storage)
+- **Screenshot capture** - Save UI to BMP files in SPIFFS
 
 ## Configuration
 
@@ -93,6 +94,7 @@ pio device monitor --baud 115200
     ui_screens.h/.cpp      # Screen layouts
     ui_bindings.h/.cpp     # Model-to-UI data binding
     ui_styles.h/.cpp       # UI styling
+    ui_screenshot.h/.cpp   # Screenshot capture (SPIFFS)
   hw/                # Hardware abstraction
     hw_display.h/.cpp      # Display driver (LVGL)
     hw_touch.h/.cpp        # Touch input (XPT2046)
@@ -105,7 +107,6 @@ pio device monitor --baud 115200
 ### Navigation
 
 - **Prev/Next**: Cycle through symbols (BTC → ETH → SOL)
-- **Alerts**: View alert history and settings
 - **Settings**: Configure thresholds and refresh intervals
 
 ### Display
@@ -121,6 +122,21 @@ Visual and audio alerts trigger when:
 - Spread exceeds configured threshold (default 0.5%)
 - Funding rate exceeds configured threshold (default 0.01%)
 - Cooldown period prevents alert spam (30 seconds per symbol)
+
+### Screenshots
+
+Take screenshots of the current UI programmatically:
+
+```cpp
+#include "ui/ui_screenshot.h"
+
+// Call from anywhere after ui_screenshot_init()
+if (ui_take_screenshot("/dashboard.bmp")) {
+    Serial.println("Screenshot saved!");
+}
+```
+
+See [docs/SCREENSHOT.md](docs/SCREENSHOT.md) for detailed documentation and [docs/screenshot_examples.cpp](docs/screenshot_examples.cpp) for usage examples.
 
 ## Development
 
