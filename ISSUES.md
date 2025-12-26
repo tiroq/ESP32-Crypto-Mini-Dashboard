@@ -102,25 +102,31 @@
 ---
 
 ## ⚠️ Flash Space Constraint
-**Current**: 88.3% used (~1,157KB / 1,310KB)  
-**Available**: ~154KB remaining
+**Current**: 90.5% used (1,186,721 / 1,310,720 bytes)  
+**Previous**: 88.3% used (~1,157KB / 1,310KB)
+**Available**: ~124KB remaining
 
-**Recent optimizations:**
+**Recent changes:**
+- ❌ **Flash increased by ~29KB** (unexpected)
+- Added screen animations (+minimal)
+- Disabled unused LVGL widgets (expected -10-15KB, but didn't help)
+- Possible cause: LVGL library recompiled with different settings
+
+**Optimization history:**
 - Compiler optimization (-O2): ~26KB saved
 - Debug level 0: Included in optimization savings
-
-**Recent additions:**
 - Historical charts: +1,764 bytes
 - Screenshot feature: +1,152 bytes
-- **Total new features**: ~2.9KB
+- Animations: Minimal impact
 
 **For future features (OTA, web interface, localization):**
 1. ~~Remove debug Serial.printf statements~~ ✅ Done via CORE_DEBUG_LEVEL=0
-2. Optimize LVGL fonts (~20-30KB) - Only load needed font sizes
-3. Review unused library code (~5-10KB)
-4. Fix chart rendering (empty display issue)
+2. ~~Optimize LVGL widgets~~ ✅ Done (disabled unused widgets)
+3. Consider reducing LVGL_BUFFER_SIZE (~12KB currently)
+4. Remove screenshot debug logging when stable
+5. Reduce PRICE_HISTORY_SIZE from 30 to 20 points
 
-**Target**: Free up another 30-50KB to enable P4 features comfortably
+**Target**: Need to free up 30-50KB more for OTA updates
 
 ---
 
