@@ -111,11 +111,11 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_label_set_text(lbl_wifi, "WiFi: --");
     lv_obj_set_style_text_color(lbl_wifi, lv_color_hex(0x888888), 0);
     lv_obj_set_style_text_font(lbl_wifi, &lv_font_montserrat_14, 0);
-    lv_obj_align(lbl_wifi, LV_ALIGN_TOP_MID, 0, 4);
+    lv_obj_set_pos(lbl_wifi, 90, 4);
 
-    // Time label (right)
+    // Last update time (right)
     lbl_time = lv_label_create(header);
-    lv_label_set_text(lbl_time, "--:--");
+    lv_label_set_text(lbl_time, "Updated: --:--");
     lv_obj_set_style_text_color(lbl_time, lv_color_hex(0x888888), 0);
     lv_obj_set_style_text_font(lbl_time, &lv_font_montserrat_14, 0);
     lv_obj_align(lbl_time, LV_ALIGN_TOP_RIGHT, -4, 4);
@@ -656,22 +656,6 @@ lv_obj_t* ui_screens_create_chart() {
     lv_obj_set_style_text_color(lbl_price, lv_color_hex(0xEAECEF), 0);
     lv_obj_set_style_text_font(lbl_price, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_price, 240, 5);
-    
-    // 24h change (below price)
-    lv_obj_t* lbl_change = lv_label_create(screen);
-    char change_text[32];
-    if (sym.binance_quote.valid) {
-        const char* sign = (sym.binance_quote.change_24h >= 0) ? "+" : "";
-        uint32_t color = (sym.binance_quote.change_24h >= 0) ? 0x0ECB81 : 0xF6465D;
-        snprintf(change_text, sizeof(change_text), "%s%.2f%%", sign, sym.binance_quote.change_24h);
-        lv_obj_set_style_text_color(lbl_change, lv_color_hex(color), 0);
-    } else {
-        snprintf(change_text, sizeof(change_text), "---");
-        lv_obj_set_style_text_color(lbl_change, lv_color_hex(0x888888), 0);
-    }
-    lv_label_set_text(lbl_change, change_text);
-    lv_obj_set_style_text_font(lbl_change, &lv_font_montserrat_10, 0);
-    lv_obj_set_pos(lbl_change, 240, 22);
     
     // Create chart (fits 320x240 screen: 5px margins, title at top, range label at bottom)
     lv_obj_t* chart = lv_chart_create(screen);

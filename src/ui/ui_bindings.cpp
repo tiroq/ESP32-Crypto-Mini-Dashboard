@@ -81,9 +81,11 @@ void ui_bindings_apply(const AppState& state) {
         }
     }
     
-    // === UPDATE TIME ===
+    // === UPDATE TIME (show as "Updated: HH:MM") ===
     if (g_widgets.lbl_time && strcmp(g_cache.time_str, state.current_time) != 0) {
-        lv_label_set_text(g_widgets.lbl_time, state.current_time);
+        char update_text[32];
+        snprintf(update_text, sizeof(update_text), "Updated: %s", state.current_time);
+        lv_label_set_text(g_widgets.lbl_time, update_text);
         strncpy(g_cache.time_str, state.current_time, sizeof(g_cache.time_str) - 1);
     }
     
