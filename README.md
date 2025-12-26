@@ -26,9 +26,32 @@ Dashboard:
 - Touch navigation between symbols and screens
 - Configurable alert thresholds
 - Persistent settings (NVS storage)
+- **Web dashboard** - Remote monitoring and configuration via browser
 - **OTA firmware updates** - Update firmware via web browser (HTTP)
 - **Screenshot capture (optional)** - Capture UI via serial commands (disabled by default)
 - **Compile-time feature flags** - Disable unused features to save flash space
+
+### Web Dashboard
+
+Monitor prices and configure settings remotely from any device on your network:
+
+1. Ensure device is connected to WiFi
+2. Find device IP address on the Dashboard or Settings screen
+3. Open browser and navigate to `http://<ESP32-IP>:8080/dashboard`
+
+**Features:**
+- **Real-time monitoring** - Live BTC/ETH prices, spreads, and funding rates (auto-refresh every 5s)
+- **Settings configuration** - Adjust alert thresholds and refresh intervals
+- **Responsive design** - Works on desktop, tablet, and mobile
+- **Binance color scheme** - Matches physical dashboard aesthetics
+
+**REST API:**
+- `GET /api/prices` - Current prices and funding rates for all symbols
+- `GET /api/settings` - Current configuration
+- `POST /api/settings` - Update configuration
+- `POST /api/settings/reset` - Reset to factory defaults
+
+**Flash impact:** +18KB (79.8% → 81.2%)
 
 ### Feature Flags
 
@@ -41,10 +64,11 @@ Optional features can be disabled at compile-time to free up flash memory. Edit 
 ```
 
 **Flash savings** (measured):
-- Default build (HTTP): **82.1% flash** (1,076,481 bytes) - 234KB available
-- With HTTPS enabled: **92.2% flash** (1,207,901 bytes) - 102KB available  
+- Default build (HTTP + Web): **81.2% flash** (1,064,881 bytes) - 246KB available
+- With HTTPS enabled: **~95% flash** (~1,245,000 bytes) - 65KB available  
 - Minimal (all disabled): **~72% flash** (~945,000 bytes) - 366KB available
 - **HTTPS costs 131KB** - disabled by default to maximize available space
+- **Web dashboard costs 18KB** - included by default for remote monitoring
 
 See [docs/FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md) for complete configuration guide.
 
@@ -53,11 +77,11 @@ See [docs/FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md) for complete configuration gu
 Update firmware without USB cable via web browser:
 
 1. Connect to device's WiFi network
-2. Navigate to **OTA** screen on device to see upload URL: `http://<IP>:8080`
+2. Navigate to **Settings** screen on device and tap **OTA** button to see upload URL: `http://<IP>:8080`
 3. Open URL in browser, select `.bin` file, click "Upload Firmware"
 4. Device automatically reboots with new firmware
 
-**Note:** OTA requires `ENABLE_OTA 1` in `src/config.h` (enabled by default).
+**Note:** OTA requires `ENABLE_OTA 1` in `src/config.h` (enabled by default). You can also access the dashboard at `http://<IP>:8080/dashboard` for monitoring and configuration.
 
 ## Screenshots
 
