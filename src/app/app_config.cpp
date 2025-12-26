@@ -31,8 +31,8 @@ void config_init() {
     g_config.spread_alert_pct = 0.5;       // 0.5% spread
     g_config.funding_alert_pct = 0.01;     // 0.01% funding rate (0.01% = 0.0001)
     
-    // Stale data detection
-    g_config.stale_ms = 15000;             // 15 seconds
+    // Stale data detection (3x price refresh interval to allow for retries/delays)
+    g_config.stale_ms = 30000;             // 30 seconds (3x price refresh)
     
     Serial.println("[CONFIG] Initialized with defaults:");
     Serial.printf("[CONFIG]   Symbols: %d (BTC, ETH, SOL)\n", g_config.num_symbols);
