@@ -101,9 +101,18 @@
   - Social sentiment
 - [ ] **Implement dark mode for the display**
   - Already dark, but add themes
-- [ ] **Improve power management for battery-operated setups**
-  - Sleep modes
-  - Configurable refresh rates
+- [x] **Improve power management for battery-operated setups**
+  - ✅ Power modes: Normal / Battery Saver / Deep Sleep
+  - ✅ WiFi modem sleep for battery saver mode
+  - ✅ Configurable backlight dimming (PWM control)
+  - ✅ Deep sleep support with timer wake
+  - ✅ Settings UI with dropdown selector
+  - ✅ Automatic sleep cycles based on refresh rates
+  - **Flash impact**: +~2KB (ENABLE_POWER_MANAGEMENT flag)
+  - Modes:
+    * **Normal**: Full brightness, WiFi always on, no sleep
+    * **Battery Saver**: Dimmed backlight (100/255), WiFi modem sleep
+    * **Deep Sleep**: Device sleeps between updates, restarts on wake
 - [ ] **Implement user authentication for settings**
   - PIN/password protection
   - Secure settings storage
