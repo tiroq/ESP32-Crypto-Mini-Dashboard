@@ -67,9 +67,11 @@
 - [ ] **Add alerts/notifications for significant price changes**
   - Threshold-based alerts
   - Visual/audio indicators
-- [ ] **Enhance UI/UX with animations and transitions**
-  - Smooth screen transitions
-  - Loading animations
+- [x] **Enhance UI/UX with animations and transitions**
+  - ✅ Smooth screen transitions (250ms slide left/right animations)
+  - ✅ Back button uses slide-right, forward navigation uses slide-left
+  - ✅ Dashboard initial load with 300ms fade-in
+  - **Flash impact**: Minimal (uses built-in LVGL animations)
 - [ ] **Add more detailed documentation**
   - User guide
   - Hardware setup guide
