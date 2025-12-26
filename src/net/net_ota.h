@@ -1,6 +1,10 @@
 #ifndef NET_OTA_H
 #define NET_OTA_H
 
+#include "../config.h"
+
+#if ENABLE_OTA
+
 #include <Arduino.h>
 
 /**
@@ -40,4 +44,5 @@ const char* ota_get_message();
  */
 int ota_get_progress();
 
+#endif // ENABLE_OTA
 #endif // NET_OTA_H

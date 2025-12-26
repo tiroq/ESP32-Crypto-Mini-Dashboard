@@ -1,4 +1,8 @@
 #include "net_ota.h"
+#include "../config.h"
+
+#if ENABLE_OTA
+
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Update.h>
@@ -110,3 +114,5 @@ const char* ota_get_message() {
 int ota_get_progress() {
     return update_progress;
 }
+
+#endif // ENABLE_OTA
