@@ -1,4 +1,5 @@
 #include "hw_touch.h"
+#include "../config.h"
 #include <XPT2046_Touchscreen.h>
 #include <SPI.h>
 #include <lvgl.h>
@@ -36,7 +37,7 @@ static void touch_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data) {
     
     // Log that callback is being called every 2 seconds
     if (now - last_callback_log > 2000) {
-        Serial.println("[HW_TOUCH] Callback invoked by LVGL");
+        DEBUG_PRINTLN("[HW_TOUCH] Callback invoked by LVGL");
         last_callback_log = now;
     }
     #endif
@@ -49,7 +50,7 @@ static void touch_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data) {
     
     // Log touch state changes
     if (touched != was_touched) {
-        Serial.printf("[HW_TOUCH] Touch state changed: %s\n", touched ? "PRESSED" : "RELEASED");
+        DEBUG_PRINTF("[HW_TOUCH] Touch state changed: %s\n", touched ? "PRESSED" : "RELEASED");
         was_touched = touched;
     }
     #endif
@@ -58,7 +59,7 @@ static void touch_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data) {
         TS_Point p = ts.getPoint();
         
         #if TOUCH_DEBUG
-        Serial.printf("[HW_TOUCH] Raw touch: x=%d, y=%d, z=%d\n", p.x, p.y, p.z);
+        DEBUG_PRINTF("[HW_TOUCH] Raw touch: x=%d, y=%d, z=%d\n", p.x, p.y, p.z);
         #endif
         
         // Calibrate with map function (from working example)
@@ -76,7 +77,7 @@ static void touch_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data) {
         #if TOUCH_DEBUG
         unsigned long now2 = millis();
         if (now2 - last_touch_log > TOUCH_LOG_INTERVAL_MS) {
-            Serial.printf("[HW_TOUCH] Touch at screen(%d, %d) raw(%d, %d) z=%d\n", x, y, p.x, p.y, p.z);
+            DEBUG_PRINTF("[HW_TOUCH] Touch at screen(%d, %d) raw(%d, %d) z=%d\n", x, y, p.x, p.y, p.z);
             last_touch_log = now2;
         }
         #endif
@@ -86,20 +87,20 @@ static void touch_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data) {
 }
 
 bool hw_touch_init() {
-    Serial.println("[HW_TOUCH] Initializing touch controller...");
+    DEBUG_PRINTLN("[HW_TOUCH] Initializing touch controller...");
     
     // Initialize dedicated SPI bus for touchscreen
     touchscreenSPI.begin(TOUCH_CLK, TOUCH_MISO, TOUCH_MOSI, TOUCH_CS);
-    Serial.println("[HW_TOUCH] Touch SPI bus initialized");
+    DEBUG_PRINTLN("[HW_TOUCH] Touch SPI bus initialized");
     
     // Initialize XPT2046 touch controller
     ts.begin(touchscreenSPI);
     ts.setRotation(1); // Match display rotation (landscape)
     
     if (!ts.tirqTouched()) {
-        Serial.println("[HW_TOUCH] Touch controller initialized (no touch detected)");
+        DEBUG_PRINTLN("[HW_TOUCH] Touch controller initialized (no touch detected)");
     } else {
-        Serial.println("[HW_TOUCH] Touch controller initialized (touch detected)");
+        DEBUG_PRINTLN("[HW_TOUCH] Touch controller initialized (touch detected)");
     }
     
     // Register touch input device with LVGL
@@ -110,16 +111,16 @@ bool hw_touch_init() {
     lv_indev_t *indev = lv_indev_drv_register(&indev_drv);
     
     if (indev) {
-        Serial.println("[HW_TOUCH] Touch input device registered with LVGL");
+        DEBUG_PRINTLN("[HW_TOUCH] Touch input device registered with LVGL");
     } else {
-        Serial.println("[HW_TOUCH] ERROR: Failed to register touch input device!");
+        DEBUG_PRINTLN("[HW_TOUCH] ERROR: Failed to register touch input device!");
         return false;
     }
     
     #if TOUCH_DEBUG
-    Serial.println("[HW_TOUCH] Debug mode enabled - touch events will be logged");
+    DEBUG_PRINTLN("[HW_TOUCH] Debug mode enabled - touch events will be logged");
     #endif
     
-    Serial.println("[HW_TOUCH] Initialization complete");
+    DEBUG_PRINTLN("[HW_TOUCH] Initialization complete");
     return true;
 }

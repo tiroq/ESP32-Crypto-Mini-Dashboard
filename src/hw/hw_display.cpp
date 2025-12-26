@@ -1,4 +1,5 @@
 #include "hw_display.h"
+#include "../config.h"
 #include <lvgl.h>
 #include <TFT_eSPI.h>
 
@@ -37,22 +38,22 @@ static void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t
 }
 
 bool hw_display_init() {
-    Serial.println("[HW_DISPLAY] Initializing display...");
+    DEBUG_PRINTLN("[HW_DISPLAY] Initializing display...");
 
     // Initialize TFT display
     tft.begin();
     tft.setRotation(1); // Landscape mode
     tft.fillScreen(TFT_BLACK);
-    Serial.println("[HW_DISPLAY] TFT initialized (320x240 landscape)");
+    DEBUG_PRINTLN("[HW_DISPLAY] TFT initialized (320x240 landscape)");
 
     // Turn on backlight
     pinMode(TFT_BL, OUTPUT);
     digitalWrite(TFT_BL, HIGH);
-    Serial.println("[HW_DISPLAY] Backlight enabled");
+    DEBUG_PRINTLN("[HW_DISPLAY] Backlight enabled");
 
     // Initialize LVGL
     lv_init();
-    Serial.println("[HW_DISPLAY] LVGL initialized");
+    DEBUG_PRINTLN("[HW_DISPLAY] LVGL initialized");
 
     // Setup display buffer
     lv_disp_draw_buf_init(&draw_buf, buf, NULL, LVGL_BUFFER_SIZE);
@@ -65,8 +66,8 @@ bool hw_display_init() {
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);
 
-    Serial.println("[HW_DISPLAY] Display driver registered");
-    Serial.println("[HW_DISPLAY] Initialization complete");
+    DEBUG_PRINTLN("[HW_DISPLAY] Display driver registered");
+    DEBUG_PRINTLN("[HW_DISPLAY] Initialization complete");
     
     return true;
 }
