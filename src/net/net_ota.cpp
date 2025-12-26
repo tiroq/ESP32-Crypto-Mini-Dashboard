@@ -35,12 +35,8 @@ button:hover{background:#FFD700}
 )";
 
 bool ota_init() {
-    if (WiFi.status() != WL_CONNECTED) {
-        current_status = OTA_IDLE;
-        status_message = "WiFi not connected";
-        return false;
-    }
-
+    // Note: WiFi may not be connected yet during init, but server will work once WiFi connects
+    
     // Serve upload page
     server.on("/", HTTP_GET, []() {
         server.send(200, "text/html", upload_html);
@@ -109,9 +105,8 @@ bool ota_init() {
 }
 
 void ota_handle() {
-    if (current_status != OTA_IDLE) {
-        server.handleClient();
-    }
+    // Always handle client requests, regardless of OTA status
+    server.handleClient();
 }
 
 OTAStatus ota_get_status() {
