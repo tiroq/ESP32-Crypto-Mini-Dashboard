@@ -9,6 +9,9 @@
 #include "../net/net_coinbase.h"
 #include "../hw/hw_alert.h"
 #include "../hw/hw_storage.h"
+#if ENABLE_POWER_MANAGEMENT
+#include "../hw/hw_power.h"
+#endif
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -326,6 +329,24 @@ static void net_task(void* parameter) {
             log_stability_metrics();
         }
         
+#if ENABLE_POWER_MANAGEMENT
+        // Power management: Deep sleep mode support
+        PowerMode power_mode = config_get_power_mode();
+        if (power_mode == POWER_DEEP_SLEEP && net_wifi_is_connected()) {
+            // Calculate time until next update needed
+            uint32_t time_until_price = config_get_price_refresh_ms() - (now - last_price_fetch);
+            uint32_t time_until_funding = config_get_funding_refresh_ms() - (now - last_funding_fetch);
+            uint32_t sleep_duration = min(time_until_price, time_until_funding);
+            
+            // Only sleep if there's significant time before next update (> 5 seconds)
+            if (sleep_duration > 5000) {
+                DEBUG_PRINTF("[SCHEDULER] Deep sleep mode: sleeping for %lu ms\n", sleep_duration);
+                power_deep_sleep(sleep_duration);
+                // Note: Device will restart after deep sleep, so we never reach here
+            }
+        }
+#endif
+        
         // Yield to other tasks - check every second
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -346,6 +367,16 @@ void scheduler_init() {
     
     // Initialize alert engine (Task 9.1)
     alerts_init();
+    
+#if ENABLE_POWER_MANAGEMENT
+    // Initialize power management system
+    power_init();
+    
+    // Apply saved power mode from configuration
+    PowerMode saved_mode = config_get_power_mode();
+    power_set_mode(saved_mode);
+    DEBUG_PRINTF("[SCHEDULER] Power mode applied: %d\n", saved_mode);
+#endif
     
     // Create network task with reasonable stack size
     // Priority 1 = lower than default (UI should have priority)

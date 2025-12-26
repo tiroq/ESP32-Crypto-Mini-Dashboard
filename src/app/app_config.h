@@ -2,6 +2,7 @@
 #define APP_CONFIG_H
 
 #include <Arduino.h>
+#include "../hw/hw_power.h"
 
 // Application configuration - defaults and settings (Task 3.2)
 
@@ -29,12 +30,16 @@ struct AppConfig {
     // Stale data detection
     uint32_t stale_ms;           // Mark data stale after this duration
     
+    // Power management
+    PowerMode power_mode;        // Power mode (Normal/Battery Saver/Deep Sleep)
+    
     AppConfig() : num_symbols(3),
                   price_refresh_ms(5000),
                   funding_refresh_ms(60000),
                   spread_alert_pct(0.5),
                   funding_alert_pct(0.01),
-                  stale_ms(15000) {}
+                  stale_ms(15000),
+                  power_mode(POWER_NORMAL) {}
 };
 
 // Initialize configuration with defaults
@@ -65,5 +70,7 @@ void config_set_price_refresh_ms(uint32_t ms);
 void config_set_funding_refresh_ms(uint32_t ms);
 void config_set_spread_alert_pct(double pct);
 void config_set_funding_alert_pct(double pct);
+PowerMode config_get_power_mode();
+void config_set_power_mode(PowerMode mode);
 
 #endif // APP_CONFIG_H

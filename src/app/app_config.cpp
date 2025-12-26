@@ -35,6 +35,9 @@ void config_init() {
     // Stale data detection (3x price refresh interval to allow for retries/delays)
     g_config.stale_ms = 30000;             // 30 seconds (3x price refresh)
     
+    // Power management
+    g_config.power_mode = POWER_NORMAL;    // Normal mode by default
+    
     DEBUG_PRINTLN("[CONFIG] Initialized with defaults:");
     DEBUG_PRINTF("[CONFIG]   Symbols: %d (BTC, ETH, SOL)\n", g_config.num_symbols);
     DEBUG_PRINTF("[CONFIG]   Price refresh: %lu ms\n", g_config.price_refresh_ms);
@@ -126,4 +129,13 @@ void config_set_spread_alert_pct(double pct) {
 void config_set_funding_alert_pct(double pct) {
     g_config.funding_alert_pct = pct;
     DEBUG_PRINTF("[CONFIG] Funding alert updated to %.4f%%\n", pct);
+}
+
+PowerMode config_get_power_mode() {
+    return g_config.power_mode;
+}
+
+void config_set_power_mode(PowerMode mode) {
+    g_config.power_mode = mode;
+    DEBUG_PRINTF("[CONFIG] Power mode updated to %d\n", mode);
 }
