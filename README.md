@@ -235,7 +235,7 @@ Take screenshots of the current UI programmatically:
 
 // Call from anywhere after ui_screenshot_init()
 if (ui_take_screenshot("/dashboard.bmp")) {
-    Serial.println("Screenshot saved!");
+    DEBUG_PRINTLN("Screenshot saved!");
 }
 ```
 
