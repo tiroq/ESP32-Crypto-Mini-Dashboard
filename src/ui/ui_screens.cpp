@@ -627,12 +627,12 @@ lv_obj_t* ui_screens_create_chart() {
     lv_label_set_text(lbl_title, title);
     lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xF0B90B), 0);
     lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_14, 0);
-    lv_obj_set_pos(lbl_title, 95, 15);
+    lv_obj_set_pos(lbl_title, 80, 5);
     
-    // Create chart
+    // Create chart (fits 320x240 screen: 5px margins, title at top, range label at bottom)
     lv_obj_t* chart = lv_chart_create(screen);
-    lv_obj_set_size(chart, 310, 240);
-    lv_obj_set_pos(chart, 5, 55);
+    lv_obj_set_size(chart, 310, 180);  // Width: 320-10, Height: leaves room for title and range
+    lv_obj_set_pos(chart, 5, 30);      // Start below title
     lv_obj_set_style_bg_color(chart, lv_color_hex(0x0B0E11), 0);
     lv_obj_set_style_border_color(chart, lv_color_hex(0x2B3139), 0);
     lv_obj_set_style_border_width(chart, 2, 0);
@@ -640,13 +640,16 @@ lv_obj_t* ui_screens_create_chart() {
     // Configure chart
     lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
     lv_chart_set_point_count(chart, PRICE_HISTORY_SIZE);
-    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100000); // Will be auto-scaled
+    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, 10000); // Will be auto-scaled
     
     // Add series for price data
     lv_chart_series_t* series = lv_chart_add_series(chart, lv_color_hex(0xF0B90B), LV_CHART_AXIS_PRIMARY_Y);
     
     // Populate with history data
     const SymbolState& sym = state.symbols[state.selected_symbol_idx];
+    Serial.printf("[CHART] Drawing chart for symbol %d: history_count=%d, history_head=%d\n", 
+                  state.selected_symbol_idx, sym.history_count, sym.history_head);
+    
     if (sym.history_count > 0) {
         // Find min/max for auto-scaling
         double min_price = sym.price_history[0];
@@ -662,6 +665,8 @@ lv_obj_t* ui_screens_create_chart() {
         min_price -= range * 0.05;
         max_price += range * 0.05;
         
+        Serial.printf("[CHART] Y-axis range: %.2f to %.2f (range: %.2f)\n", min_price, max_price, range);
+        
         lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, (int)min_price, (int)max_price);
         
         // Populate data points
@@ -669,6 +674,10 @@ lv_obj_t* ui_screens_create_chart() {
             if (i < sym.history_count) {
                 int idx = (sym.history_head - sym.history_count + i + PRICE_HISTORY_SIZE) % PRICE_HISTORY_SIZE;
                 series->y_points[i] = (lv_coord_t)sym.price_history[idx];
+                if (i < 5 || i >= sym.history_count - 5) {
+                    Serial.printf("[CHART] Point[%d] = %.2f (from history[%d])\n", 
+                                  i, sym.price_history[idx], idx);
+                }
             } else {
                 series->y_points[i] = LV_CHART_POINT_NONE;
             }
@@ -676,17 +685,18 @@ lv_obj_t* ui_screens_create_chart() {
         
         lv_chart_refresh(chart);
         
-        // Show price range
+        // Show price range (at bottom of screen)
         lv_obj_t* lbl_range = lv_label_create(screen);
         char range_text[64];
         snprintf(range_text, sizeof(range_text), "Range: $%.2f - $%.2f", min_price, max_price);
         lv_label_set_text(lbl_range, range_text);
         lv_obj_set_style_text_color(lbl_range, lv_color_hex(0xEAECEF), 0);
-        lv_obj_set_pos(lbl_range, 10, 300);
+        lv_obj_set_style_text_font(lbl_range, &lv_font_montserrat_14, 0);
+        lv_obj_set_pos(lbl_range, 10, 220);  // Bottom of 240px screen
     } else {
-        // No data yet
+        // No data yet - centered on screen
         lv_obj_t* lbl_no_data = lv_label_create(screen);
-        lv_label_set_text(lbl_no_data, "No price history yet\\nData will appear after\\nfetching prices");
+        lv_label_set_text(lbl_no_data, "No price history yet\nData will appear after\nfetching prices");
         lv_obj_set_style_text_color(lbl_no_data, lv_color_hex(0x888888), 0);
         lv_obj_set_style_text_align(lbl_no_data, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_center(lbl_no_data);

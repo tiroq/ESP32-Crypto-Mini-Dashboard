@@ -94,6 +94,10 @@ void model_update_symbol(int idx, const SymbolState& s) {
             if (old_count < PRICE_HISTORY_SIZE) {
                 g_app_state.symbols[idx].history_count = old_count + 1;
             }
+            Serial.printf("[MODEL] Added price %.2f to history[%d/%d] head=%d count=%d\n", 
+                          s.binance_quote.price, idx, old_head, 
+                          g_app_state.symbols[idx].history_head, 
+                          g_app_state.symbols[idx].history_count);
         }
         
         xSemaphoreGive(g_model_mutex);
