@@ -1,12 +1,18 @@
 #include "net_binance.h"
+#include "../config.h"
 #include "net_http.h"
 #include <ArduinoJson.h>
 
 namespace net_binance {
 
-// Binance API base URLs
+// Binance API base URLs - use HTTP or HTTPS based on config
+#if ENABLE_HTTPS
 static const char* BINANCE_API_BASE = "https://api.binance.com";
 static const char* BINANCE_FAPI_BASE = "https://fapi.binance.com";
+#else
+static const char* BINANCE_API_BASE = "http://api.binance.com";
+static const char* BINANCE_FAPI_BASE = "http://fapi.binance.com";
+#endif
 
 bool fetch_spot(const char* symbol, double* out_price) {
     if (!symbol || !out_price) {

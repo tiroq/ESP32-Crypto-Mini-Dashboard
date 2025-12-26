@@ -1,7 +1,10 @@
 #include "net_http.h"
+#include "../config.h"
 #include <WiFi.h>
 #include <WiFiClient.h>
+#if ENABLE_HTTPS
 #include <WiFiClientSecure.h>
+#endif
 
 // Helper: Parse URL into components
 static bool parse_url(const char* url, bool& is_https, String& host, int& port, String& path) {
@@ -61,6 +64,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     
     // Create appropriate client
     WiFiClient* client = nullptr;
+#if ENABLE_HTTPS
     WiFiClientSecure* secure_client = nullptr;
     
     if (is_https) {
@@ -73,6 +77,14 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     } else {
         client = new WiFiClient();
     }
+#else
+    // HTTPS disabled - always use plain HTTP
+    if (is_https) {
+        Serial.println("[HTTP] ERROR: HTTPS disabled, use HTTP URLs");
+        return false;
+    }
+    client = new WiFiClient();
+#endif
     
     // Set connection timeout
     client->setTimeout(timeout_ms / 1000); // WiFiClient uses seconds

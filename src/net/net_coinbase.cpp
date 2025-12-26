@@ -1,9 +1,14 @@
 #include "net_coinbase.h"
+#include "../config.h"
 #include "net_http.h"
 #include <ArduinoJson.h>
 
-// Coinbase API base URL
+// Coinbase API base URL - use HTTP or HTTPS based on config
+#if ENABLE_HTTPS
 static const char* COINBASE_API_BASE = "https://api.coinbase.com/v2/prices/";
+#else
+static const char* COINBASE_API_BASE = "http://api.coinbase.com/v2/prices/";
+#endif
 
 namespace net_coinbase {
 
