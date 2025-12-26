@@ -33,25 +33,115 @@ Dashboard:
 
 ### Web Dashboard
 
-Monitor prices and configure settings remotely from any device on your network:
+Monitor and configure your crypto dashboard remotely from any device on your network.
 
-1. Ensure device is connected to WiFi
-2. Find device IP address on the Dashboard or Settings screen
-3. Open browser and navigate to `http://<ESP32-IP>:8080/dashboard`
+**Access:** `http://<ESP32-IP>:8080/dashboard`
 
-**Features:**
-- **Real-time monitoring** - Live BTC/ETH prices, spreads, and funding rates (auto-refresh every 5s)
-- **Settings configuration** - Adjust alert thresholds and refresh intervals
-- **Responsive design** - Works on desktop, tablet, and mobile
-- **Binance color scheme** - Matches physical dashboard aesthetics
+Find the IP address on the device's Dashboard or Settings screen after WiFi connects.
 
-**REST API:**
-- `GET /api/prices` - Current prices and funding rates for all symbols
-- `GET /api/settings` - Current configuration
-- `POST /api/settings` - Update configuration
-- `POST /api/settings/reset` - Reset to factory defaults
+#### Dashboard Features
 
-**Flash impact:** +18KB (79.8% → 81.2%)
+**📊 Real-Time Price Monitoring**
+- Live cryptocurrency prices from Binance and Coinbase
+- Automatic refresh every 5 seconds
+- Multi-symbol support (BTC/ETH currently displayed)
+- Color-coded spread indicators:
+  - **Green** - Positive spread (Binance higher than Coinbase)
+  - **Red** - Negative spread (Coinbase higher than Binance)
+
+**💰 Funding Rate Display**
+- Binance perpetual futures funding rates
+- Real-time updates with color coding:
+  - **Yellow** - Positive funding rate
+  - **Red** - Negative funding rate
+- Percentage display with 4 decimal precision
+
+**⚙️ Remote Configuration**
+- **Alert Thresholds:**
+  - Spread alert threshold (%)
+  - Funding rate alert threshold (%)
+- **Refresh Intervals:**
+  - Price update rate (seconds)
+  - Funding rate update rate (seconds)
+- Save button to persist changes to device NVS storage
+- Reset to defaults button to restore factory settings
+
+**📱 Responsive Design**
+- Works seamlessly on desktop, tablet, and mobile browsers
+- Binance-inspired dark theme (#0B0E11 background, #F0B90B accents)
+- Professional card-based layout
+- Touch-friendly controls
+
+**🔄 Navigation Tabs**
+- **Prices** - Real-time monitoring dashboard
+- **Settings** - Configuration interface
+- **OTA Update** - Firmware upload page
+
+**🔌 REST API Endpoints**
+
+Access data programmatically for integration with other tools:
+
+```bash
+# Get current prices and funding rates
+curl http://<ESP32-IP>:8080/api/prices
+
+# Get current settings
+curl http://<ESP32-IP>:8080/api/settings
+
+# Update settings
+curl -X POST http://<ESP32-IP>:8080/api/settings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spread_alert_threshold": 0.5,
+    "funding_alert_threshold": 0.01,
+    "price_update_interval_sec": 5,
+    "funding_update_interval_sec": 60
+  }'
+
+# Reset to factory defaults
+curl -X POST http://<ESP32-IP>:8080/api/settings/reset
+```
+
+**API Response Examples:**
+
+`GET /api/prices` returns:
+```json
+{
+  "symbols": [
+    {
+      "name": "BTC/USDT",
+      "binance_price": 43250.50,
+      "coinbase_price": 43245.75,
+      "spread_pct": 0.011,
+      "funding_rate": 0.0001
+    },
+    {
+      "name": "ETH/USDT",
+      "binance_price": 2245.30,
+      "coinbase_price": 2246.10,
+      "spread_pct": -0.036,
+      "funding_rate": 0.00005
+    }
+  ]
+}
+```
+
+`GET /api/settings` returns:
+```json
+{
+  "spread_alert_threshold": 0.5,
+  "funding_alert_threshold": 0.01,
+  "price_update_interval_sec": 5,
+  "funding_update_interval_sec": 60
+}
+```
+
+**Technical Details:**
+- Built with vanilla HTML/CSS/JavaScript (no frameworks)
+- Stored in PROGMEM to minimize RAM usage
+- Integrated with existing OTA WebServer (port 8080)
+- Auto-refresh with JavaScript fetch API
+- Flash impact: +18KB (79.8% → 81.2%)
 
 ### Feature Flags
 
