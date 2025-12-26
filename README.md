@@ -7,6 +7,7 @@ A real-time cryptocurrency price monitoring dashboard for the ESP32-2432S028 (Ch
 Dashboard:
 
 ![Dashboard Screenshot](images/dashboard.bmp)
+
 *Live screenshot captured via serial command showing BTC/ETH/SOL prices with funding rates*
 
 ## Hardware
