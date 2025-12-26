@@ -52,8 +52,20 @@ static void btn_alerts_clicked(lv_event_t* e) {
 
 static void btn_chart_clicked(lv_event_t* e) {
     Serial.println("[UI] Chart button clicked - switching to Chart screen");
+    
+    // Delete old chart screen and recreate with fresh data
     if (screen_chart) {
+        lv_obj_del(screen_chart);
+        screen_chart = NULL;
+    }
+    
+    ui_screens_create_chart();
+    
+    if (screen_chart) {
+        Serial.println("[UI] Loading chart screen...");
         lv_scr_load(screen_chart);
+    } else {
+        Serial.println("[UI] ERROR: screen_chart is NULL!");
     }
 }
 
@@ -601,6 +613,8 @@ DashboardWidgets ui_screens_get_dashboard_widgets() {
 
 // Chart screen with price history
 lv_obj_t* ui_screens_create_chart() {
+    Serial.println("[UI] Creating chart screen...");
+    
     lv_obj_t* screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x181A20), 0);
     
