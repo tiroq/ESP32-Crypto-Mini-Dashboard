@@ -1,0 +1,3 @@
+# Python dependencies for ESP32 Crypto Mini-Dashboard
+pyserial>=3.5
+Pillow>=10.0.0

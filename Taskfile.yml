@@ -1,0 +1,296 @@
+version: '3'
+
+# ESP32 Crypto Mini-Dashboard - Task Automation
+# Install: brew install go-task
+# Usage: task <command>
+
+vars:
+  VENV_DIR: .venv
+  PYTHON: "{{.VENV_DIR}}/bin/python3"
+  PIP: "{{.VENV_DIR}}/bin/pip3"
+  PORT: /dev/cu.usbserial-10
+  BAUD: 115200
+
+tasks:
+  # ============================================================================
+  # Setup & Environment
+  # ============================================================================
+  
+  setup:
+    desc: Initial setup - install dependencies and create venv
+    cmds:
+      - task: venv
+      - task: install-deps
+      - echo "✅ Setup complete! Run 'task list' to see available commands"
+
+  venv:
+    desc: Create Python virtual environment
+    cmds:
+      - python3 -m venv {{.VENV_DIR}}
+      - echo "✅ Virtual environment created at {{.VENV_DIR}}"
+    status:
+      - test -d {{.VENV_DIR}}
+
+  install-deps:
+    desc: Install Python dependencies in venv
+    deps: [venv]
+    cmds:
+      - "{{.PIP}} install --upgrade pip"
+      - "{{.PIP}} install pyserial pillow"
+      - echo "✅ Python dependencies installed"
+    sources:
+      - requirements.txt
+    generates:
+      - "{{.VENV_DIR}}/lib/python*/site-packages/serial/**"
+
+  # ============================================================================
+  # Build & Upload
+  # ============================================================================
+
+  build:
+    desc: Build firmware
+    cmds:
+      - pio run
+      - task: size
+
+  upload:
+    desc: Build and upload firmware to ESP32
+    cmds:
+      - pio run -t upload
+      - echo "✅ Firmware uploaded successfully"
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - pio run -t clean
+      - echo "✅ Build artifacts cleaned"
+
+  rebuild:
+    desc: Clean and rebuild firmware
+    cmds:
+      - task: clean
+      - task: build
+
+  size:
+    desc: Show firmware size information
+    cmds:
+      - pio run -t size 2>&1 | grep -E "(RAM:|Flash:)"
+
+  # ============================================================================
+  # Serial & Monitoring
+  # ============================================================================
+
+  monitor:
+    desc: Open serial monitor
+    cmds:
+      - pio device monitor --baud {{.BAUD}}
+
+  serial:
+    desc: Open serial monitor (alias for monitor)
+    cmds:
+      - task: monitor
+
+  logs:
+    desc: Show serial output with timestamps
+    cmds:
+      - pio device monitor --baud {{.BAUD}} | while IFS= read -r line; do echo "$(date '+%H:%M:%S') $line"; done
+
+  # ============================================================================
+  # Screenshot Tools
+  # ============================================================================
+
+  screenshot:
+    desc: Capture screenshot from device
+    deps: [venv]
+    cmds:
+      - "{{.PYTHON}} download_screenshot.py -s"
+      - echo "✅ Screenshot saved"
+
+  screenshot-only:
+    desc: Capture screenshot without downloading
+    deps: [venv]
+    cmds:
+      - "{{.PYTHON}} download_screenshot.py"
+      - echo "✅ Screenshot captured (use 'task screenshot-download' to retrieve)"
+
+  screenshot-download:
+    desc: Download existing screenshot from device
+    deps: [venv]
+    cmds:
+      - "{{.PYTHON}} download_screenshot.py -d"
+
+  screenshot-list:
+    desc: List files on device SPIFFS
+    deps: [venv]
+    cmds:
+      - "{{.PYTHON}} download_screenshot.py -l"
+
+  # ============================================================================
+  # Development & Testing
+  # ============================================================================
+
+  flash-and-monitor:
+    desc: Upload firmware and immediately open serial monitor
+    cmds:
+      - task: upload
+      - sleep 2
+      - task: monitor
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - pio test
+
+  check:
+    desc: Check code for common issues
+    cmds:
+      - pio check
+
+  # ============================================================================
+  # Debug Commands
+  # ============================================================================
+
+  debug:wifi:
+    desc: Monitor WiFi connection status
+    cmds:
+      - pio device monitor --baud {{.BAUD}} --filter colorize | grep -i wifi
+
+  debug:http:
+    desc: Monitor HTTP requests and responses
+    cmds:
+      - pio device monitor --baud {{.BAUD}} --filter colorize | grep -E "\[HTTP\]|\[BINANCE\]|\[COINBASE\]"
+
+  debug:scheduler:
+    desc: Monitor scheduler and fetch activity
+    cmds:
+      - pio device monitor --baud {{.BAUD}} --filter colorize | grep -i scheduler
+
+  debug:memory:
+    desc: Monitor heap and memory usage
+    cmds:
+      - pio device monitor --baud {{.BAUD}} --filter colorize | grep -E "heap|memory|STABILITY"
+
+  debug:ota:
+    desc: Monitor OTA server activity
+    cmds:
+      - pio device monitor --baud {{.BAUD}} --filter colorize | grep -i ota
+
+  debug:all:
+    desc: Show all debug output with color
+    cmds:
+      - pio device monitor --baud {{.BAUD}} --filter colorize
+
+  debug:errors:
+    desc: Monitor only errors and warnings
+    cmds:
+      - pio device monitor --baud {{.BAUD}} --filter colorize | grep -E "ERROR|WARNING|FAILED"
+
+  # ============================================================================
+  # Web Dashboard
+  # ============================================================================
+
+  web:
+    desc: Open web dashboard (requires device IP)
+    cmds:
+      - |
+        echo "Enter ESP32 IP address (or press Enter for 192.168.1.129):"
+        read IP
+        IP=${IP:-192.168.1.129}
+        open "http://$IP:8080/dashboard"
+
+  api:prices:
+    desc: Fetch current prices via API
+    cmds:
+      - |
+        echo "Enter ESP32 IP address (or press Enter for 192.168.1.129):"
+        read IP
+        IP=${IP:-192.168.1.129}
+        curl -s "http://$IP:8080/api/prices" | python3 -m json.tool
+
+  api:settings:
+    desc: Fetch current settings via API
+    cmds:
+      - |
+        echo "Enter ESP32 IP address (or press Enter for 192.168.1.129):"
+        read IP
+        IP=${IP:-192.168.1.129}
+        curl -s "http://$IP:8080/api/settings" | python3 -m json.tool
+
+  # ============================================================================
+  # Configuration
+  # ============================================================================
+
+  config:enable-https:
+    desc: Enable HTTPS in config.h
+    cmds:
+      - sed -i.bak 's/#define ENABLE_HTTPS 0/#define ENABLE_HTTPS 1/' src/config.h
+      - echo "✅ HTTPS enabled (requires rebuild)"
+
+  config:disable-https:
+    desc: Disable HTTPS in config.h
+    cmds:
+      - sed -i.bak 's/#define ENABLE_HTTPS 1/#define ENABLE_HTTPS 0/' src/config.h
+      - echo "✅ HTTPS disabled (requires rebuild)"
+
+  config:enable-screenshot:
+    desc: Enable screenshot feature
+    cmds:
+      - sed -i.bak 's/#define ENABLE_SCREENSHOT 0/#define ENABLE_SCREENSHOT 1/' src/config.h
+      - echo "✅ Screenshot enabled (requires rebuild)"
+
+  config:disable-screenshot:
+    desc: Disable screenshot feature
+    cmds:
+      - sed -i.bak 's/#define ENABLE_SCREENSHOT 1/#define ENABLE_SCREENSHOT 0/' src/config.h
+      - echo "✅ Screenshot disabled (requires rebuild)"
+
+  config:show:
+    desc: Show current feature flag configuration
+    cmds:
+      - echo "Current Configuration:"
+      - grep "^#define ENABLE_" src/config.h
+
+  # ============================================================================
+  # Utilities
+  # ============================================================================
+
+  ports:
+    desc: List available serial ports
+    cmds:
+      - pio device list
+
+  info:
+    desc: Show project information
+    cmds:
+      - pio project metadata
+
+  version:
+    desc: Show PlatformIO and toolchain versions
+    cmds:
+      - pio --version
+      - pio platform show espressif32
+
+  clean-all:
+    desc: Clean everything (build, venv, screenshots)
+    cmds:
+      - task: clean
+      - rm -rf {{.VENV_DIR}}
+      - rm -f *.bmp
+      - echo "✅ Cleaned all generated files"
+
+  # ============================================================================
+  # Quick Actions
+  # ============================================================================
+
+  quick-flash:
+    desc: Quick workflow - clean, build, upload, monitor
+    cmds:
+      - task: clean
+      - task: upload
+      - sleep 2
+      - task: monitor
+
+  default:
+    desc: Show available commands
+    cmds:
+      - task --list
