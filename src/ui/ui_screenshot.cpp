@@ -14,20 +14,20 @@ static bool spiffs_initialized = false;
 
 bool ui_screenshot_init() {
     if (spiffs_initialized) {
-        Serial.println("[SCREENSHOT] SPIFFS already initialized");
+        DEBUG_PRINTLN("[SCREENSHOT] SPIFFS already initialized");
         return true;
     }
     
-    Serial.println("[SCREENSHOT] Initializing SPIFFS...");
+    DEBUG_PRINTLN("[SCREENSHOT] Initializing SPIFFS...");
     
     if (!SPIFFS.begin(true)) {  // true = format on mount failure
-        Serial.println("[SCREENSHOT] SPIFFS mount failed!");
+        DEBUG_PRINTLN("[SCREENSHOT] SPIFFS mount failed!");
         return false;
     }
     
     size_t total = SPIFFS.totalBytes();
     size_t used = SPIFFS.usedBytes();
-    Serial.printf("[SCREENSHOT] SPIFFS mounted: %zu KB total, %zu KB used\n", 
+    DEBUG_PRINTF("[SCREENSHOT] SPIFFS mounted: %zu KB total, %zu KB used\n", 
                   total / 1024, used / 1024);
     
     spiffs_initialized = true;
@@ -61,48 +61,48 @@ struct BMPInfoHeader {
 
 bool ui_take_screenshot(const char* path) {
     if (!spiffs_initialized) {
-        Serial.println("[SCREENSHOT] ERROR: SPIFFS not initialized");
+        DEBUG_PRINTLN("[SCREENSHOT] ERROR: SPIFFS not initialized");
         return false;
     }
     
     if (!path || path[0] == '\0') {
-        Serial.println("[SCREENSHOT] ERROR: Invalid path");
+        DEBUG_PRINTLN("[SCREENSHOT] ERROR: Invalid path");
         return false;
     }
     
-    Serial.printf("[SCREENSHOT] Taking screenshot: %s\n", path);
-    Serial.printf("[SCREENSHOT] Free heap: %d bytes\n", ESP.getFreeHeap());
+    DEBUG_PRINTF("[SCREENSHOT] Taking screenshot: %s\n", path);
+    DEBUG_PRINTF("[SCREENSHOT] Free heap: %d bytes\n", ESP.getFreeHeap());
     
     // Get display dimensions
     uint32_t width = 320;
     uint32_t height = 240;
     
-    Serial.printf("[SCREENSHOT] Display: %ux%u pixels\n", width, height);
+    DEBUG_PRINTF("[SCREENSHOT] Display: %ux%u pixels\n", width, height);
     
     // Try to get screenshot from LVGL layer
     lv_obj_t* scr = lv_scr_act();
     if (!scr) {
-        Serial.println("[SCREENSHOT] ERROR: No active screen");
+        DEBUG_PRINTLN("[SCREENSHOT] ERROR: No active screen");
         return false;
     }
     
-    Serial.println("[SCREENSHOT] Capturing from LVGL active screen...");
+    DEBUG_PRINTLN("[SCREENSHOT] Capturing from LVGL active screen...");
     
     // Calculate BMP parameters (24-bit RGB)
     uint32_t row_size = ((width * 3 + 3) / 4) * 4;  // 4-byte aligned
     uint32_t pixel_data_size = row_size * height;
     uint32_t file_size = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + pixel_data_size;
     
-    Serial.printf("[SCREENSHOT] BMP file size: %u bytes\n", file_size);
+    DEBUG_PRINTF("[SCREENSHOT] BMP file size: %u bytes\n", file_size);
     
     // Check SPIFFS space
     size_t total = SPIFFS.totalBytes();
     size_t used = SPIFFS.usedBytes();
     size_t available = total - used;
-    Serial.printf("[SCREENSHOT] SPIFFS: %zu total, %zu used, %zu available\n", total, used, available);
+    DEBUG_PRINTF("[SCREENSHOT] SPIFFS: %zu total, %zu used, %zu available\n", total, used, available);
     
     if (available < file_size) {
-        Serial.printf("[SCREENSHOT] ERROR: Not enough space! Need %u bytes, only %zu available\n", 
+        DEBUG_PRINTF("[SCREENSHOT] ERROR: Not enough space! Need %u bytes, only %zu available\n", 
                      file_size, available);
         return false;
     }
@@ -110,10 +110,10 @@ bool ui_take_screenshot(const char* path) {
     // Open file for writing
     File file = SPIFFS.open(path, FILE_WRITE);
     if (!file) {
-        Serial.printf("[SCREENSHOT] ERROR: Failed to open file: %s\n", path);
+        DEBUG_PRINTF("[SCREENSHOT] ERROR: Failed to open file: %s\n", path);
         return false;
     }
-    Serial.println("[SCREENSHOT] File opened successfully");
+    DEBUG_PRINTLN("[SCREENSHOT] File opened successfully");
     
     // Write BMP file header
     BMPFileHeader file_header = {
@@ -141,12 +141,12 @@ bool ui_take_screenshot(const char* path) {
     };
     file.write((uint8_t*)&info_header, sizeof(info_header));
     
-    Serial.println("[SCREENSHOT] Headers written, capturing screen in 6 passes...");
+    DEBUG_PRINTLN("[SCREENSHOT] Headers written, capturing screen in 6 passes...");
     
     // Allocate row buffer for RGB888 BMP data
     uint8_t* row_buffer = (uint8_t*)malloc(row_size);
     if (!row_buffer) {
-        Serial.println("[SCREENSHOT] ERROR: Failed to allocate row buffer");
+        DEBUG_PRINTLN("[SCREENSHOT] ERROR: Failed to allocate row buffer");
         file.close();
         return false;
     }
@@ -156,7 +156,7 @@ bool ui_take_screenshot(const char* path) {
     lv_color_t* chunk_buffer = (lv_color_t*)malloc(width * chunk_rows * sizeof(lv_color_t));
     
     if (!chunk_buffer) {
-        Serial.println("[SCREENSHOT] ERROR: Failed to allocate chunk buffer");
+        DEBUG_PRINTLN("[SCREENSHOT] ERROR: Failed to allocate chunk buffer");
         free(row_buffer);
         file.close();
         return false;
@@ -236,18 +236,18 @@ bool ui_take_screenshot(const char* path) {
             file.write(row_buffer, row_size);
         }
         
-        Serial.printf("[SCREENSHOT] Progress: %d%%\r", (int)(((num_chunks - chunk) * 100) / num_chunks));
+        DEBUG_PRINTF("[SCREENSHOT] Progress: %d%%\r", (int)(((num_chunks - chunk) * 100) / num_chunks));
     }
     
     hw_display_stop_capture();
     free(chunk_buffer);
     
-    Serial.println("\n[SCREENSHOT] Display captured successfully");
+    DEBUG_PRINTLN("\n[SCREENSHOT] Display captured successfully");
     
     free(row_buffer);
     file.close();
     
-    Serial.printf("[SCREENSHOT] Saved: %s (%u bytes)\n", path, file_size);
+    DEBUG_PRINTF("[SCREENSHOT] Saved: %s (%u bytes)\n", path, file_size);
     return true;
 }
 

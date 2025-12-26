@@ -14,7 +14,7 @@ void spiffs_check_download_command() {
         cmd.trim();
         
         if (cmd == "SCREENSHOT") {
-            Serial.println("[CMD] Taking screenshot...");
+            DEBUG_PRINTLN("[CMD] Taking screenshot...");
             
             // Pause scheduler to prevent interference during screenshot
             scheduler_pause();
@@ -22,7 +22,7 @@ void spiffs_check_download_command() {
             // Delete old screenshot to free space
             if (SPIFFS.exists("/dashboard.bmp")) {
                 SPIFFS.remove("/dashboard.bmp");
-                Serial.println("[CMD] Deleted old screenshot");
+                DEBUG_PRINTLN("[CMD] Deleted old screenshot");
             }
             
             bool success = ui_take_screenshot("/dashboard.bmp");
@@ -31,10 +31,10 @@ void spiffs_check_download_command() {
             scheduler_resume();
             
             if (success) {
-                Serial.println("[CMD] Screenshot saved to /dashboard.bmp");
-                Serial.println("[CMD] Use DOWNLOAD command to retrieve it");
+                DEBUG_PRINTLN("[CMD] Screenshot saved to /dashboard.bmp");
+                DEBUG_PRINTLN("[CMD] Use DOWNLOAD command to retrieve it");
             } else {
-                Serial.println("[CMD] Screenshot failed!");
+                DEBUG_PRINTLN("[CMD] Screenshot failed!");
             }
         }
         else if (cmd == "DOWNLOAD") {
@@ -42,18 +42,18 @@ void spiffs_check_download_command() {
             scheduler_pause();
             delay(100);  // Let network tasks finish current operation
             
-            Serial.println("[DOWNLOAD] Starting file transfer...");
+            DEBUG_PRINTLN("[DOWNLOAD] Starting file transfer...");
             
             File file = SPIFFS.open("/dashboard.bmp", "r");
             if (!file) {
-                Serial.println("ERROR: File not found");
+                DEBUG_PRINTLN("ERROR: File not found");
                 scheduler_resume();
                 return;
             }
             
             size_t fileSize = file.size();
             Serial.print("SIZE:");
-            Serial.println(fileSize);
+            DEBUG_PRINTLN(fileSize);
             
             // Send file as hex chunks with markers
             uint8_t buffer[64];  // 64 bytes = 128 hex chars
@@ -61,7 +61,7 @@ void spiffs_check_download_command() {
             size_t totalSent = 0;
             size_t chunkCount = 0;
             
-            Serial.println("DATA_START");
+            DEBUG_PRINTLN("DATA_START");
             while (file.available()) {
                 int bytesRead = file.read(buffer, 64);
                 
@@ -72,7 +72,7 @@ void spiffs_check_download_command() {
                         Serial.print(hex[buffer[i] >> 4]);
                         Serial.print(hex[buffer[i] & 0x0F]);
                     }
-                    Serial.println("</>");
+                    DEBUG_PRINTLN("</>");
                     
                     totalSent += bytesRead;
                     chunkCount++;
@@ -81,10 +81,10 @@ void spiffs_check_download_command() {
                     yield();
                 }
             }
-            Serial.println("DATA_END");
+            DEBUG_PRINTLN("DATA_END");
             
             file.close();
-            Serial.println("OK");
+            DEBUG_PRINTLN("OK");
             
             // Resume network tasks
             scheduler_resume();
@@ -93,16 +93,16 @@ void spiffs_check_download_command() {
             File root = SPIFFS.open("/");
             File file = root.openNextFile();
             
-            Serial.println("SPIFFS Files:");
+            DEBUG_PRINTLN("SPIFFS Files:");
             while (file) {
                 Serial.print("  ");
                 Serial.print(file.name());
                 Serial.print(" - ");
                 Serial.print(file.size());
-                Serial.println(" bytes");
+                DEBUG_PRINTLN(" bytes");
                 file = root.openNextFile();
             }
-            Serial.println("OK");
+            DEBUG_PRINTLN("OK");
         }
     }
 }

@@ -57,7 +57,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
         return false;
     }
     
-    // Serial.printf("[HTTP] GET %s://%s:%d%s\n", is_https ? "https" : "http", 
+    // DEBUG_PRINTF("[HTTP] GET %s://%s:%d%s\n", is_https ? "https" : "http", 
     //               host.c_str(), port, path.c_str());
     
     unsigned long start_ms = millis();
@@ -73,7 +73,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
         // TODO: For production, use setCACert() with proper certificates
         secure_client->setInsecure();
         client = secure_client;
-        // Serial.println("[HTTP] Using HTTPS (insecure mode)");
+        // DEBUG_PRINTLN("[HTTP] Using HTTPS (insecure mode)");
     } else {
         client = new WiFiClient();
     }
@@ -90,7 +90,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     client->setTimeout(timeout_ms / 1000); // WiFiClient uses seconds
     
     // Connect to server
-    // Serial.printf("[HTTP] Connecting to %s:%d...\n", host.c_str(), port);
+    // DEBUG_PRINTF("[HTTP] Connecting to %s:%d...\n", host.c_str(), port);
     if (!client->connect(host.c_str(), port)) {
         DEBUG_PRINTF("[HTTP] Connection failed (elapsed: %lu ms)\n", millis() - start_ms);
         delete client;
@@ -98,7 +98,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     }
     
     unsigned long connect_ms = millis() - start_ms;
-    // Serial.printf("[HTTP] Connected (took %lu ms)\n", connect_ms);
+    // DEBUG_PRINTF("[HTTP] Connected (took %lu ms)\n", connect_ms);
     
     // Send HTTP request
     client->printf("GET %s HTTP/1.1\r\n", path.c_str());
@@ -127,7 +127,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     // Read status line
     String status_line = client->readStringUntil('\n');
     status_line.trim();
-    // Serial.printf("[HTTP] Status: %s\n", status_line.c_str());
+    // DEBUG_PRINTF("[HTTP] Status: %s\n", status_line.c_str());
     
     // Parse status code (handle both "HTTP/1.1 200 OK" and "HTTP/1.1 200")
     int first_space = status_line.indexOf(' ');
@@ -186,7 +186,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     }
     
     unsigned long elapsed_ms = millis() - start_ms;
-    // Serial.printf("[HTTP] Success: %d bytes in %lu ms\n", bytes_read, elapsed_ms);
+    // DEBUG_PRINTF("[HTTP] Success: %d bytes in %lu ms\n", bytes_read, elapsed_ms);
     
     client->stop();
     delete client;

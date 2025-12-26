@@ -702,7 +702,7 @@ lv_obj_t* ui_screens_create_chart() {
     lv_chart_series_t* series = lv_chart_add_series(chart, lv_color_hex(0xF0B90B), LV_CHART_AXIS_PRIMARY_Y);
     
     // Populate with history data
-    Serial.printf("[CHART] Drawing chart for symbol %d: history_count=%d, history_head=%d\n", 
+    DEBUG_PRINTF("[CHART] Drawing chart for symbol %d: history_count=%d, history_head=%d\n", 
                   state.selected_symbol_idx, sym.history_count, sym.history_head);
     
     if (sym.history_count > 0) {
@@ -720,7 +720,7 @@ lv_obj_t* ui_screens_create_chart() {
         min_price -= range * 0.05;
         max_price += range * 0.05;
         
-        Serial.printf("[CHART] Y-axis range: %.2f to %.2f (range: %.2f)\n", min_price, max_price, range);
+        DEBUG_PRINTF("[CHART] Y-axis range: %.2f to %.2f (range: %.2f)\n", min_price, max_price, range);
         
         lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, (int)min_price, (int)max_price);
         
@@ -730,7 +730,7 @@ lv_obj_t* ui_screens_create_chart() {
                 int idx = (sym.history_head - sym.history_count + i + PRICE_HISTORY_SIZE) % PRICE_HISTORY_SIZE;
                 series->y_points[i] = (lv_coord_t)sym.price_history[idx];
                 if (i < 5 || i >= sym.history_count - 5) {
-                    Serial.printf("[CHART] Point[%d] = %.2f (from history[%d])\n", 
+                    DEBUG_PRINTF("[CHART] Point[%d] = %.2f (from history[%d])\n", 
                                   i, sym.price_history[idx], idx);
                 }
             } else {

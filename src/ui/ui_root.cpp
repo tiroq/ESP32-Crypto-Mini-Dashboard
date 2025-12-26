@@ -4,7 +4,7 @@
 #include "../app/app_model.h"
 
 void ui_root_init() {
-    Serial.println("[UI] Initializing UI root...");
+    DEBUG_PRINTLN("[UI] Initializing UI root...");
     
     // Initialize model
     model_init();
@@ -21,5 +21,5 @@ void ui_root_init() {
     // Initialize bindings (starts periodic update timer)
     ui_bindings_init();
     
-    Serial.println("[UI] Dashboard loaded and bindings initialized");
+    DEBUG_PRINTLN("[UI] Dashboard loaded and bindings initialized");
 }

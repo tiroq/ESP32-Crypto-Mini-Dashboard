@@ -42,7 +42,7 @@ static void ui_update_timer_cb(lv_timer_t* timer) {
 }
 
 void ui_bindings_init() {
-    Serial.println("[UI_BINDINGS] Initializing...");
+    DEBUG_PRINTLN("[UI_BINDINGS] Initializing...");
     
     // Get widget references from dashboard screen
     g_widgets = ui_screens_get_dashboard_widgets();
@@ -50,7 +50,7 @@ void ui_bindings_init() {
     // Create periodic timer to update UI every 250ms
     lv_timer_create(ui_update_timer_cb, 250, NULL);
     
-    Serial.println("[UI_BINDINGS] Timer created (250ms refresh)");
+    DEBUG_PRINTLN("[UI_BINDINGS] Timer created (250ms refresh)");
 }
 
 void ui_bindings_apply(const AppState& state) {

@@ -18,26 +18,26 @@ static const char* KEY_STALE_MS = "stale_ms";
 static Preferences prefs;
 
 void hw_storage_init() {
-    Serial.println("[STORAGE] Initializing NVS storage...");
+    DEBUG_PRINTLN("[STORAGE] Initializing NVS storage...");
     // Nothing specific needed - Preferences handles init internally
 }
 
 bool hw_storage_load_config(AppConfig* config) {
     if (!config) {
-        Serial.println("[STORAGE] ERROR: Null config pointer");
+        DEBUG_PRINTLN("[STORAGE] ERROR: Null config pointer");
         return false;
     }
     
     // Open preferences in read-only mode
     if (!prefs.begin(STORAGE_NAMESPACE, true)) {
-        Serial.println("[STORAGE] Failed to open preferences (read-only)");
+        DEBUG_PRINTLN("[STORAGE] Failed to open preferences (read-only)");
         return false;
     }
     
     // Check version
     uint32_t stored_version = prefs.getUInt(KEY_VERSION, 0);
     if (stored_version != CONFIG_VERSION) {
-        Serial.printf("[STORAGE] Version mismatch (stored=%lu, expected=%lu) - using defaults\n",
+        DEBUG_PRINTF("[STORAGE] Version mismatch (stored=%lu, expected=%lu) - using defaults\n",
                       stored_version, CONFIG_VERSION);
         prefs.end();
         return false;
@@ -52,25 +52,25 @@ bool hw_storage_load_config(AppConfig* config) {
     
     prefs.end();
     
-    Serial.println("[STORAGE] Configuration loaded from NVS:");
-    Serial.printf("[STORAGE]   Price refresh: %lu ms\n", config->price_refresh_ms);
-    Serial.printf("[STORAGE]   Funding refresh: %lu ms\n", config->funding_refresh_ms);
-    Serial.printf("[STORAGE]   Spread alert: %.2f%%\n", config->spread_alert_pct);
-    Serial.printf("[STORAGE]   Funding alert: %.4f%%\n", config->funding_alert_pct);
-    Serial.printf("[STORAGE]   Stale threshold: %lu ms\n", config->stale_ms);
+    DEBUG_PRINTLN("[STORAGE] Configuration loaded from NVS:");
+    DEBUG_PRINTF("[STORAGE]   Price refresh: %lu ms\n", config->price_refresh_ms);
+    DEBUG_PRINTF("[STORAGE]   Funding refresh: %lu ms\n", config->funding_refresh_ms);
+    DEBUG_PRINTF("[STORAGE]   Spread alert: %.2f%%\n", config->spread_alert_pct);
+    DEBUG_PRINTF("[STORAGE]   Funding alert: %.4f%%\n", config->funding_alert_pct);
+    DEBUG_PRINTF("[STORAGE]   Stale threshold: %lu ms\n", config->stale_ms);
     
     return true;
 }
 
 bool hw_storage_save_config(const AppConfig* config) {
     if (!config) {
-        Serial.println("[STORAGE] ERROR: Null config pointer");
+        DEBUG_PRINTLN("[STORAGE] ERROR: Null config pointer");
         return false;
     }
     
     // Open preferences in read-write mode
     if (!prefs.begin(STORAGE_NAMESPACE, false)) {
-        Serial.println("[STORAGE] ERROR: Failed to open preferences (read-write)");
+        DEBUG_PRINTLN("[STORAGE] ERROR: Failed to open preferences (read-write)");
         return false;
     }
     
@@ -86,12 +86,12 @@ bool hw_storage_save_config(const AppConfig* config) {
     
     prefs.end();
     
-    Serial.println("[STORAGE] Configuration saved to NVS:");
-    Serial.printf("[STORAGE]   Price refresh: %lu ms\n", config->price_refresh_ms);
-    Serial.printf("[STORAGE]   Funding refresh: %lu ms\n", config->funding_refresh_ms);
-    Serial.printf("[STORAGE]   Spread alert: %.2f%%\n", config->spread_alert_pct);
-    Serial.printf("[STORAGE]   Funding alert: %.4f%%\n", config->funding_alert_pct);
-    Serial.printf("[STORAGE]   Stale threshold: %lu ms\n", config->stale_ms);
+    DEBUG_PRINTLN("[STORAGE] Configuration saved to NVS:");
+    DEBUG_PRINTF("[STORAGE]   Price refresh: %lu ms\n", config->price_refresh_ms);
+    DEBUG_PRINTF("[STORAGE]   Funding refresh: %lu ms\n", config->funding_refresh_ms);
+    DEBUG_PRINTF("[STORAGE]   Spread alert: %.2f%%\n", config->spread_alert_pct);
+    DEBUG_PRINTF("[STORAGE]   Funding alert: %.4f%%\n", config->funding_alert_pct);
+    DEBUG_PRINTF("[STORAGE]   Stale threshold: %lu ms\n", config->stale_ms);
     
     return true;
 }
