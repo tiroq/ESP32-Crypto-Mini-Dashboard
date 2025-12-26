@@ -4,6 +4,11 @@ A real-time cryptocurrency price monitoring dashboard for the ESP32-2432S028 (Ch
 
 ![esp32](images/esp32_2432S028.jpg)
 
+Dashboard:
+
+![Dashboard Screenshot](images/dashboard.bmp)
+*Live screenshot captured via serial command showing BTC/ETH/SOL prices with funding rates*
+
 ## Hardware
 
 - **Board**: ESP32-2432S028 (CYD - Cheap Yellow Display)
@@ -20,7 +25,30 @@ A real-time cryptocurrency price monitoring dashboard for the ESP32-2432S028 (Ch
 - Touch navigation between symbols and screens
 - Configurable alert thresholds
 - Persistent settings (NVS storage)
-- **Screenshot capture** - Save UI to BMP files in SPIFFS
+- **Screenshot capture** - Capture UI via serial commands and download as BMP files
+
+## Screenshots
+
+The dashboard supports software screenshots via serial commands. Capture the current UI state and download it to your computer:
+
+```bash
+# Take screenshot and download in one command
+python3 download_screenshot.py -s
+```
+
+**Serial Commands:**
+- `SCREENSHOT` - Capture current display to SPIFFS
+- `DOWNLOAD` - Download screenshot via hex-encoded serial transfer
+- `LIST` - Show files on SPIFFS
+
+The screenshot feature captures the full 320×240 display in 24-bit BMP format (~230 KB). The capture process:
+1. Pauses network tasks to prevent interference
+2. Captures screen in 6 passes of 40 rows each (works within available heap)
+3. Intercepts LVGL's display flush callback for pixel data
+4. Converts RGB565 → RGB888 and writes BMP format
+5. Downloads via serial using hex encoding for reliability
+
+See [docs/SCREENSHOT.md](docs/SCREENSHOT.md) for complete documentation.
 
 ## Configuration
 
@@ -102,18 +130,33 @@ pio device monitor --baud 115200
     hw_storage.h/.cpp      # NVS persistence
 ```
 
-## Usage
+Capture the current UI state via serial commands:
 
-### Navigation
+```bash
+# Take screenshot and download
+python3 download_screenshot.py -s
+```
 
-- **Prev/Next**: Cycle through symbols (BTC → ETH → SOL)
-- **Settings**: Configure thresholds and refresh intervals
+Or manually via serial monitor:
+```
+SCREENSHOT     # Capture display
+LIST           # Verify file exists
+DOWNLOAD       # Transfer file (use Python script to decode)
+```
 
-### Display
+**What's captured:**
+- Exact 320×240 pixel representation of LVGL display
+- All UI elements: price cards, funding rates, spreads, status indicators
+- Current symbol, WiFi signal, timestamps
+- 24-bit BMP format (230,454 bytes)
 
-- **Header**: Current symbol, Wi-Fi status (RSSI), time
-- **Prices**: Binance and Coinbase spot prices
-- **Spread**: Percentage and absolute dollar spread
+**Use cases:**
+- Document UI changes during development
+- Capture bugs or visual issues for debugging
+- Create documentation screenshots
+- Monitor display state remotely
+
+See [docs/SCREENSHOT.md](docs/SCREENSHOT.md) for technical detail
 - **Funding**: Current funding rate (Binance perpetual)
 
 ### Alerts
