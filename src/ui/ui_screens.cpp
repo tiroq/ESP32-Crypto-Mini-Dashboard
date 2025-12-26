@@ -219,17 +219,10 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_pad_all(footer, 4, 0);
     lv_obj_clear_flag(footer, LV_OBJ_FLAG_SCROLLABLE);
 
-#if ENABLE_OTA
-    // Button dimensions (5 buttons: Prev, Next, Chart, OTA, Settings)
-    const int btn_width = 58;
-    const int btn_height = 42;
-    const int btn_gap = 4;
-#else
     // Button dimensions (4 buttons: Prev, Next, Chart, Settings)
     const int btn_width = 74;
     const int btn_height = 42;
     const int btn_gap = 2;
-#endif
 
     // Prev button
     lv_obj_t* btn_prev = lv_btn_create(footer);
@@ -261,27 +254,10 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_label_set_text(lbl_chart, "Chart");
     lv_obj_center(lbl_chart);
 
-#if ENABLE_OTA
-    // OTA button
-    lv_obj_t* btn_ota = lv_btn_create(footer);
-    lv_obj_set_size(btn_ota, btn_width, btn_height);
-    lv_obj_set_pos(btn_ota, 4 + (btn_width + btn_gap) * 3, 4);
-    lv_obj_set_style_bg_color(btn_ota, lv_color_hex(0x2B3139), 0);
-    lv_obj_add_event_cb(btn_ota, btn_ota_clicked, LV_EVENT_CLICKED, NULL);
-    lv_obj_t* lbl_ota = lv_label_create(btn_ota);
-    lv_label_set_text(lbl_ota, "OTA");
-    lv_obj_center(lbl_ota);
-
-    // Settings button (position 4 when OTA enabled)
-    lv_obj_t* btn_settings = lv_btn_create(footer);
-    lv_obj_set_size(btn_settings, btn_width, btn_height);
-    lv_obj_set_pos(btn_settings, 4 + (btn_width + btn_gap) * 4, 4);
-#else
-    // Settings button (position 3 when OTA disabled)
+    // Settings button
     lv_obj_t* btn_settings = lv_btn_create(footer);
     lv_obj_set_size(btn_settings, btn_width, btn_height);
     lv_obj_set_pos(btn_settings, 4 + (btn_width + btn_gap) * 3, 4);
-#endif
     lv_obj_set_style_bg_color(btn_settings, lv_color_hex(0xF0B90B), 0);
     lv_obj_add_event_cb(btn_settings, btn_settings_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_settings = lv_label_create(btn_settings);
@@ -371,6 +347,18 @@ lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* lbl_reset = lv_label_create(btn_reset);
     lv_label_set_text(lbl_reset, "Reset");
     lv_obj_center(lbl_reset);
+    
+#if ENABLE_OTA
+    // OTA button (purple)
+    lv_obj_t* btn_ota = lv_btn_create(screen);
+    lv_obj_set_size(btn_ota, 70, 40);
+    lv_obj_set_pos(btn_ota, 85, 5);
+    lv_obj_set_style_bg_color(btn_ota, lv_color_hex(0x8B5CF6), 0);
+    lv_obj_add_event_cb(btn_ota, btn_ota_clicked, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* lbl_ota = lv_label_create(btn_ota);
+    lv_label_set_text(lbl_ota, "OTA");
+    lv_obj_center(lbl_ota);
+#endif
     
     // Title
     lv_obj_t* lbl_title = lv_label_create(screen);
