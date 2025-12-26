@@ -78,12 +78,19 @@
   - API documentation
 
 ## ⚪ Future/Research (P4)
-- [ ] **Add OTA updates**
-  - Requires ~100KB flash space
-  - Web-based firmware upload
+- [x] **Add OTA updates**
+  - ✅ Basic HTTP OTA server on port 8080
+  - ✅ Web-based firmware upload interface
+  - ✅ OTA button in dashboard footer
+  - ✅ Shows IP address and upload instructions
+  - ✅ Automatic reboot after successful update
+  - **Flash impact: +30,756 bytes (89.8% → 92.2%)**
+  - **Trade-offs**: LVGL buffer reduced (40→20 rows), heap reduced (48KB→40KB)
 - [ ] **Implement a web interface for remote monitoring and configuration**
-  - Requires ~150KB+ flash space
-  - WebSocket real-time updates
+  - ❌ **NOT FEASIBLE** - Requires ~150KB flash, only ~102KB available
+  - Would need to remove screenshots (-1KB), charts (-2KB), or other features
+  - Alternative: Use existing OTA page for basic monitoring
+  - WebSocket real-time updates would add another ~20-30KB
 - [ ] **Add support for different languages (localization)**
   - Requires ~50-100KB flash space
   - Multi-language strings
@@ -102,31 +109,43 @@
 ---
 
 ## ⚠️ Flash Space Constraint
-**Current**: 90.5% used (1,186,721 / 1,310,720 bytes)  
-**Previous**: 88.3% used (~1,157KB / 1,310KB)
-**Available**: ~124KB remaining
+**Current**: 92.2% used (1,208,145 / 1,310,720 bytes)  
+**Previous**: 89.8% used (1,177,389 bytes)
+**Available**: ~102KB remaining
 
 **Recent changes:**
-- ❌ **Flash increased by ~29KB** (unexpected)
-- Added screen animations (+minimal)
-- Disabled unused LVGL widgets (expected -10-15KB, but didn't help)
-- Possible cause: LVGL library recompiled with different settings
+- ✅ **OTA updates implemented** (+30,756 bytes)
+  - WebServer library (~25KB)
+  - Update library (~3KB)  
+  - OTA screen and HTML page (~2KB)
+  - Reduced LVGL buffer (40→20 rows, saved ~12.8KB)
+  - Reduced LVGL heap (48KB→40KB, saved ~8KB)
+  - Net impact: +30,756 bytes
+- ✅ **Animations disabled** (`LV_USE_ANIMATION 0`)
+  - Flash saved: ~244 bytes (minimal - only had 6 animation calls)
+  - Benefit: Instant screen transitions (faster UX)
+  - Theme grow disabled: No button press animations
 
 **Optimization history:**
-- Compiler optimization (-O2): ~26KB saved
+- Compiler optimization (-Os + gc-sections): ~26KB saved
 - Debug level 0: Included in optimization savings
 - Historical charts: +1,764 bytes
-- Screenshot feature: +1,152 bytes
-- Animations: Minimal impact
+- Screenshot feature: +1,152 bytes  
+- Animations disabled: ~244 bytes saved
+- OTA updates: +30,756 bytes
 
-**For future features (OTA, web interface, localization):**
-1. ~~Remove debug Serial.printf statements~~ ✅ Done via CORE_DEBUG_LEVEL=0
-2. ~~Optimize LVGL widgets~~ ✅ Done (disabled unused widgets)
-3. Consider reducing LVGL_BUFFER_SIZE (~12KB currently)
-4. Remove screenshot debug logging when stable
-5. Reduce PRICE_HISTORY_SIZE from 30 to 20 points
+**Current Flash Usage: 92.2%** (1,207,901 / 1,310,720 bytes) = **~102.8KB available**
 
-**Target**: Need to free up 30-50KB more for OTA updates
+**Current limitations:**
+- ❌ **Web interface NOT feasible** (~150KB needed, only 102KB available)
+- ❌ **Localization NOT feasible** (~50-100KB needed)
+- ✅ Small features still possible (<10KB each)
+
+**Possible future optimizations:**
+1. Remove screenshot feature (~1-2KB)
+2. Reduce chart history (30→20 points, ~240 bytes per symbol)
+3. Disable more LVGL widgets (limited gains due to dependencies)
+4. Switch to 4MB flash partition scheme (difficult, requires bootloader changes)
 
 ---
 
