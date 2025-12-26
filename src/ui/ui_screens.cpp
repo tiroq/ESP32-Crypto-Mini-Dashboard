@@ -49,7 +49,7 @@ static void btn_next_clicked(lv_event_t* e) {
 static void btn_alerts_clicked(lv_event_t* e) {
     Serial.println("[UI] Alerts button clicked - switching to Alerts screen");
     if (screen_alerts) {
-        lv_scr_load_anim(screen_alerts, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 0, false);
+        lv_scr_load(screen_alerts);
     }
 }
 
@@ -66,7 +66,7 @@ static void btn_chart_clicked(lv_event_t* e) {
     
     if (screen_chart) {
         Serial.println("[UI] Loading chart screen...");
-        lv_scr_load_anim(screen_chart, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 0, false);
+        lv_scr_load(screen_chart);
     } else {
         Serial.println("[UI] ERROR: screen_chart is NULL!");
     }
@@ -75,7 +75,7 @@ static void btn_chart_clicked(lv_event_t* e) {
 static void btn_settings_clicked(lv_event_t* e) {
     Serial.println("[UI] Settings button clicked - switching to Settings screen");
     if (screen_settings) {
-        lv_scr_load_anim(screen_settings, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 0, false);
+        lv_scr_load(screen_settings);
     }
 }
 
@@ -84,13 +84,13 @@ static void btn_ota_clicked(lv_event_t* e) {
     if (!screen_ota) {
         screen_ota = ui_screens_create_ota();
     }
-    lv_scr_load_anim(screen_ota, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 0, false);
+    lv_scr_load(screen_ota);
 }
 
 static void btn_back_clicked(lv_event_t* e) {
     Serial.println("[UI] Back button clicked - returning to Dashboard");
     if (screen_dashboard) {
-        lv_scr_load_anim(screen_dashboard, LV_SCR_LOAD_ANIM_OVER_RIGHT, 200, 0, false);
+        lv_scr_load(screen_dashboard);
     }
 }
 

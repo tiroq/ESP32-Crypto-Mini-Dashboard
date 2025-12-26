@@ -15,8 +15,8 @@ void ui_root_init() {
     ui_screens_create_settings();  // Creates and stores screen_settings
     ui_screens_create_chart();     // Creates and stores screen_chart
     
-    // Load Dashboard with fade-in animation
-    lv_scr_load_anim(dashboard, LV_SCR_LOAD_ANIM_FADE_IN, 300, 0, false);
+    // Load Dashboard screen
+    lv_scr_load(dashboard);
     
     // Initialize bindings (starts periodic update timer)
     ui_bindings_init();

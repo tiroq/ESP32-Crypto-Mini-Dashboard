@@ -230,6 +230,14 @@
     #define LV_GC_INCLUDE "gc.h"                           /*Include Garbage Collector related things*/
 #endif /*LV_ENABLE_GC*/
 
+/*=================
+ * ANIMATIONS
+ *=================*/
+
+/* 1: Enable animations (grow, slide, fade, etc.) */
+/* 0: Disable to save ~5-10KB of flash */
+#define LV_USE_ANIMATION 0
+
 /*=======================
  * COMPILER SETTINGS
  *=======================*/
@@ -468,10 +476,10 @@
     #define LV_THEME_DEFAULT_DARK 0
 
     /* 1: Enable grow on press */
-    #define LV_THEME_DEFAULT_GROW 1
+    #define LV_THEME_DEFAULT_GROW 0
 
-    /* Default transition time in [ms] */
-    #define LV_THEME_DEFAULT_TRANSITION_TIME 80
+    /* Default transition time in [ms] (disabled since LV_USE_ANIMATION = 0) */
+    #define LV_THEME_DEFAULT_TRANSITION_TIME 0
 #endif /*LV_USE_THEME_DEFAULT*/
 
 /* A very simple theme that is a good starting point for a custom theme */
