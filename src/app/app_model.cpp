@@ -121,13 +121,15 @@ void model_set_selected(int idx) {
     
     if (g_model_mutex != NULL && xSemaphoreTake(g_model_mutex, portMAX_DELAY) == pdTRUE) {
         g_app_state.selected_symbol_idx = idx;
-        xSemaphoreGive(g_model_mutex);
-        
-        const AppConfig& cfg = config_get();
-        DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", cfg.symbols[idx].display_name);
+        xSemaphoreGive(g_model_mutex);  // Release mutex BEFORE calling config_get()
     } else {
         DEBUG_PRINTLN("[MODEL] WARNING: Failed to acquire mutex for set_selected");
+        return;
     }
+    
+    // Call config_get() outside of mutex to avoid priority inversion
+    const AppConfig& cfg = config_get();
+    DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", cfg.symbols[idx].display_name);
 }
 
 int model_get_selected() {
@@ -145,6 +147,7 @@ int model_get_selected() {
 
 const char* model_get_symbol_name(int idx) {
     if (idx >= 0 && idx < MAX_SYMBOLS) {
+        // No mutex needed - config is read-only after init
         const AppConfig& cfg = config_get();
         return cfg.symbols[idx].display_name;
     }
