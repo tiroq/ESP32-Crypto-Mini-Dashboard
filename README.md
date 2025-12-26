@@ -12,13 +12,13 @@ A real-time cryptocurrency price monitoring dashboard for the ESP32-2432S028 (Ch
 
 ### Physical Dashboard
 
-![Dashboard Screenshot](images/dashboard.png)
+![Dashboard Screenshot](images/dashboard.bmp)
 *Main dashboard showing BTC/ETH prices with funding rates*
 
-![Settings Screen](images/settings.png)
+![Settings Screen](images/settings.bmp)
 *Settings screen with configurable alert thresholds and refresh intervals*
 
-![Chart View](images/chart.png)
+![Chart View](images/chart.bmp)
 *Price history chart with 30-point moving display*
 
 ### Web Interface
