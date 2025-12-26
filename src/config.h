@@ -19,7 +19,8 @@
 // Enable HTTPS for API requests (uses WiFiClientSecure with mbedTLS)
 // Cost when enabled: ~131KB flash (HTTP is default, saves space)
 // Note: HTTP is less secure but functional for public API endpoints
-#define ENABLE_HTTPS 0
+// WARNING: Binance and Coinbase APIs require HTTPS (return 301 on HTTP)
+#define ENABLE_HTTPS 1
 // ============================================================================
 // Serial Debug Wrapper
 // ============================================================================
