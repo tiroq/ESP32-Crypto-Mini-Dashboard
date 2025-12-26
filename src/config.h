@@ -30,12 +30,16 @@
     #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
     #define DEBUG_PRINTF(...) Serial.printf(__VA_ARGS__)
     #define DEBUG_BEGIN(baud) Serial.begin(baud)
+    
+    // LOG macro with F() for flash string storage (saves RAM)
+    #define LOG(msg) Serial.println(F(msg))
 #else
     // Serial is disabled - use dummy implementations (compile to nothing)
     #define DEBUG_PRINT(...) ((void)0)
     #define DEBUG_PRINTLN(...) ((void)0)
     #define DEBUG_PRINTF(...) ((void)0)
     #define DEBUG_BEGIN(baud) ((void)0)
+    #define LOG(msg) ((void)0)
 #endif
 
 #endif // CONFIG_H
