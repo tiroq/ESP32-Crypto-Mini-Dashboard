@@ -1,6 +1,10 @@
 #ifndef UI_SCREENSHOT_H
 #define UI_SCREENSHOT_H
 
+#include "../config.h"
+
+#if ENABLE_SCREENSHOT
+
 #include <Arduino.h>
 
 /**
@@ -19,4 +23,5 @@ bool ui_screenshot_init();
  */
 bool ui_take_screenshot(const char* path);
 
+#endif // ENABLE_SCREENSHOT
 #endif // UI_SCREENSHOT_H

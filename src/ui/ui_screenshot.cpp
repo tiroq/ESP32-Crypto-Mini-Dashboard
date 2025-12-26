@@ -1,4 +1,8 @@
 #include "ui_screenshot.h"
+#include "../config.h"
+
+#if ENABLE_SCREENSHOT
+
 #include <lvgl.h>
 #include <src/extra/lv_extra.h>
 #include <SPIFFS.h>
@@ -246,3 +250,5 @@ bool ui_take_screenshot(const char* path) {
     Serial.printf("[SCREENSHOT] Saved: %s (%u bytes)\n", path, file_size);
     return true;
 }
+
+#endif // ENABLE_SCREENSHOT
