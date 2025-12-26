@@ -6,17 +6,21 @@
 
 // Application configuration - defaults and settings (Task 3.2)
 
+// Maximum number of symbols supported
+#define MAX_SYMBOLS 10
+
 // Symbol configuration
 struct SymbolConfig {
     const char* display_name;      // e.g., "BTC/USDT"
     const char* binance_symbol;    // e.g., "BTCUSDT"
     const char* coinbase_product;  // e.g., "BTC-USD"
+    bool enabled;                  // Whether this symbol is active
 };
 
 // Application configuration structure
 struct AppConfig {
     // Symbol list
-    SymbolConfig symbols[3];
+    SymbolConfig symbols[MAX_SYMBOLS];
     int num_symbols;
     
     // Refresh intervals (milliseconds)
@@ -33,7 +37,7 @@ struct AppConfig {
     // Power management
     PowerMode power_mode;        // Power mode (Normal/Battery Saver/Deep Sleep)
     
-    AppConfig() : num_symbols(3),
+    AppConfig() : num_symbols(MAX_SYMBOLS),
                   price_refresh_ms(5000),
                   funding_refresh_ms(60000),
                   spread_alert_pct(0.5),
@@ -58,6 +62,10 @@ const AppConfig& config_get();
 
 // Get specific configuration values (convenience getters)
 int config_get_num_symbols();
+int config_get_enabled_symbol_count();
+bool config_is_symbol_enabled(int idx);
+int config_get_next_enabled_symbol(int current_idx);
+int config_get_prev_enabled_symbol(int current_idx);
 const SymbolConfig* config_get_symbol(int idx);
 uint32_t config_get_price_refresh_ms();
 uint32_t config_get_funding_refresh_ms();

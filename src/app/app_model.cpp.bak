@@ -1,6 +1,6 @@
 #include "app_model.h"
-#include "app_config.h"
 #include "../config.h"
+#include "app_config.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
@@ -9,7 +9,7 @@ static AppState g_app_state;
 static SemaphoreHandle_t g_model_mutex = NULL;
 
 void model_init() {
-    // Create mutex FIRST before any other operations
+    // Create mutex for thread-safe access
     if (g_model_mutex == NULL) {
         g_model_mutex = xSemaphoreCreateMutex();
         if (g_model_mutex == NULL) {
@@ -18,49 +18,41 @@ void model_init() {
         }
     }
     
-    // Get config data BEFORE acquiring mutex to avoid nested locks
-    const AppConfig& cfg = config_get();
-    
-    // Now initialize state WITHOUT calling any config functions
+    // Initialize state without calling config functions that might have mutexes
+    // Symbol names will be set lazily when first accessed
     g_app_state.selected_symbol_idx = 0;
     g_app_state.data_stale = true;
     g_app_state.wifi_connected = false;
     g_app_state.wifi_rssi = 0;
     strcpy(g_app_state.current_time, "--:--");
     
-    // Initialize symbol configurations from pre-fetched config
-    for (int i = 0; i < MAX_SYMBOLS && i < cfg.num_symbols; i++) {
+    DEBUG_PRINTLN("[MODEL] Initialized with thread-safe mutex");
+    
+    // Now it's safe to call config functions after mutex is created
+    const AppConfig& cfg = config_get();
+    
+    // Initialize symbol configurations from config
+    for (int i = 0; i < cfg.num_symbols && i < MAX_SYMBOLS; i++) {
         g_app_state.symbols[i].symbol_name = cfg.symbols[i].display_name;
         g_app_state.symbols[i].binance_symbol = cfg.symbols[i].binance_symbol;
         g_app_state.symbols[i].coinbase_product = cfg.symbols[i].coinbase_product;
     }
     
     // Start with first enabled symbol
-    int first_enabled = 0;
-    for (int i = 0; i < MAX_SYMBOLS; i++) {
-        if (cfg.symbols[i].enabled) {
-            first_enabled = i;
-            break;
-        }
-    }
-    g_app_state.selected_symbol_idx = first_enabled;
-    
-    int enabled_count = 0;
-    for (int i = 0; i < MAX_SYMBOLS; i++) {
-        if (cfg.symbols[i].enabled) enabled_count++;
+    if (!config_is_symbol_enabled(0)) {
+        g_app_state.selected_symbol_idx = config_get_next_enabled_symbol(0);
     }
     
-    DEBUG_PRINTLN("[MODEL] Initialized with thread-safe mutex");
     DEBUG_PRINTF("[MODEL] Configured symbols: %d total, %d enabled\n", 
-                cfg.num_symbols, enabled_count);
+                cfg.num_symbols, config_get_enabled_symbol_count());
     DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", 
-                cfg.symbols[first_enabled].display_name);
+                cfg.symbols[g_app_state.selected_symbol_idx].display_name);
 }
 
 AppState model_snapshot() {
     AppState snapshot;
     
-    if (g_model_mutex != NULL && xSemaphoreTake(g_model_mutex, portMAX_DELAY) == pdTRUE) {
+    if (g_model_mutex != NULL && xSemaphoreTake(g_model_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
         snapshot = g_app_state;  // Copy entire state
         xSemaphoreGive(g_model_mutex);
     } else {
@@ -134,10 +126,15 @@ void model_set_selected(int idx) {
     
     if (g_model_mutex != NULL && xSemaphoreTake(g_model_mutex, portMAX_DELAY) == pdTRUE) {
         g_app_state.selected_symbol_idx = idx;
-        xSemaphoreGive(g_model_mutex);
+        xSemaphoreGive(g_model_mutex);  // Release mutex BEFORE calling config_get()
     } else {
         DEBUG_PRINTLN("[MODEL] WARNING: Failed to acquire mutex for set_selected");
+        return;
     }
+    
+    // Call config_get() outside of mutex to avoid priority inversion
+    const AppConfig& cfg = config_get();
+    DEBUG_PRINTF("[MODEL] Selected symbol: %s\n", cfg.symbols[idx].display_name);
 }
 
 int model_get_selected() {
@@ -151,6 +148,15 @@ int model_get_selected() {
     }
     
     return idx;
+}
+
+const char* model_get_symbol_name(int idx) {
+    if (idx >= 0 && idx < MAX_SYMBOLS) {
+        // No mutex needed - config is read-only after init
+        const AppConfig& cfg = config_get();
+        return cfg.symbols[idx].display_name;
+    }
+    return "UNKNOWN";
 }
 
 void model_update_wifi(bool connected, int rssi) {

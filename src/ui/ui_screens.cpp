@@ -31,24 +31,30 @@ static lv_obj_t* lbl_funding = NULL;
 static void btn_prev_clicked(lv_event_t* e) {
     DEBUG_PRINTLN("[UI] Prev button clicked");
     int current = model_get_selected();
-    int next = (current - 1 + 3) % 3;  // Cycle: 0->2, 2->1, 1->0
+    int next = config_get_prev_enabled_symbol(current);
     model_set_selected(next);
     
     // Update symbol label
     if (lbl_symbol) {
-        lv_label_set_text(lbl_symbol, model_get_symbol_name(next));
+        const SymbolConfig* sym = config_get_symbol(next);
+        if (sym) {
+            lv_label_set_text(lbl_symbol, sym->display_name);
+        }
     }
 }
 
 static void btn_next_clicked(lv_event_t* e) {
     DEBUG_PRINTLN("[UI] Next button clicked");
     int current = model_get_selected();
-    int next = (current + 1) % 3;  // Cycle: 0->1, 1->2, 2->0
+    int next = config_get_next_enabled_symbol(current);
     model_set_selected(next);
     
     // Update symbol label
     if (lbl_symbol) {
-        lv_label_set_text(lbl_symbol, model_get_symbol_name(next));
+        const SymbolConfig* sym = config_get_symbol(next);
+        if (sym) {
+            lv_label_set_text(lbl_symbol, sym->display_name);
+        }
     }
 }
 
@@ -120,7 +126,10 @@ lv_obj_t* ui_screens_create_dashboard() {
 
     // Symbol label (left) - store reference for updates
     lbl_symbol = lv_label_create(header);
-    lv_label_set_text(lbl_symbol, model_get_symbol_name(model_get_selected()));
+    const SymbolConfig* current_sym = config_get_symbol(model_get_selected());
+    if (current_sym) {
+        lv_label_set_text(lbl_symbol, current_sym->display_name);
+    }
     lv_obj_set_style_text_color(lbl_symbol, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_text_font(lbl_symbol, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_symbol, 4, 4);

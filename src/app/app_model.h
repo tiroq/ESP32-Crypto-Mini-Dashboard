@@ -57,8 +57,10 @@ struct SymbolState {
     }
 };
 
+#include "app_config.h"  // For MAX_SYMBOLS
+
 struct AppState {
-    SymbolState symbols[3];  // BTC, ETH, SOL
+    SymbolState symbols[MAX_SYMBOLS];  // Up to 10 symbols
     int selected_symbol_idx;
     bool data_stale;
     

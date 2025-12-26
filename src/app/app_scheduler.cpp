@@ -48,8 +48,8 @@ struct BackoffState {
     }
 };
 
-static BackoffState price_backoff[3];    // One per symbol
-static BackoffState funding_backoff[3];  // One per symbol
+static BackoffState price_backoff[MAX_SYMBOLS];    // One per symbol
+static BackoffState funding_backoff[MAX_SYMBOLS];  // One per symbol
 
 // Performance tracking for stability monitoring (Task 11.1)
 struct PerformanceMetrics {
@@ -94,25 +94,33 @@ static void log_stability_metrics() {
  */
 static int fetch_all_prices() {
     unsigned long fetch_start = millis();
-    const AppConfig& cfg = config_get();
-    int success_count = 0;
     unsigned long now = millis();
+    int success_count = 0;
     
+    // Get config ONCE outside the loop to avoid repeated calls
+    const AppConfig& cfg = config_get();
+    
+    // Process each symbol
     for (int i = 0; i < cfg.num_symbols; i++) {
+        // Skip disabled symbols
+        if (!cfg.symbols[i].enabled) {
+            continue;
+        }
+        
         // Check if we should retry this symbol (backoff)
         if (!price_backoff[i].should_retry(now)) {
             continue;
         }
         
-        const SymbolConfig* sym = config_get_symbol(i);
-        if (!sym) continue;
-        
+        const SymbolConfig* sym = &cfg.symbols[i];
         price_backoff[i].mark_attempt(now);
         
         // Get current state to preserve other fields
+        // CRITICAL: Snapshot ONCE per symbol, not repeatedly
         AppState snapshot = model_snapshot();
         SymbolState state = snapshot.symbols[i];
         
+        // Set symbol names from config (these are const char* pointers)
         state.symbol_name = sym->display_name;
         state.binance_symbol = sym->binance_symbol;
         state.coinbase_product = sym->coinbase_product;
@@ -188,22 +196,28 @@ static int fetch_all_prices() {
  */
 static int fetch_all_funding() {
     unsigned long fetch_start = millis();
-    const AppConfig& cfg = config_get();
-    int success_count = 0;
     unsigned long now = millis();
+    int success_count = 0;
+    
+    // Get config ONCE outside the loop
+    const AppConfig& cfg = config_get();
     
     for (int i = 0; i < cfg.num_symbols; i++) {
+        // Skip disabled symbols
+        if (!cfg.symbols[i].enabled) {
+            continue;
+        }
+        
         // Check if we should retry this symbol (backoff)
         if (!funding_backoff[i].should_retry(now)) {
             continue;
         }
         
-        const SymbolConfig* sym = config_get_symbol(i);
-        if (!sym) continue;
-        
+        const SymbolConfig* sym = &cfg.symbols[i];
         funding_backoff[i].mark_attempt(now);
         
         // Get current state to preserve other fields
+        // CRITICAL: Snapshot ONCE per symbol
         AppState snapshot = model_snapshot();
         SymbolState state = snapshot.symbols[i];
         
@@ -383,7 +397,7 @@ void scheduler_init() {
     BaseType_t result = xTaskCreate(
         net_task,
         "net_task",
-        8192,  // 8KB stack
+        12288,  // 12KB stack (TLS/HTTP buffers + multiple symbols)
         NULL,
         1,     // Low priority (UI is higher)
         &net_task_handle
@@ -400,7 +414,7 @@ void scheduler_init() {
     result = xTaskCreate(
         alert_task,
         "alert_task",
-        4096,  // 4KB stack (less than net_task, no HTTP)
+        6144,  // 6KB stack (increased for MAX_SYMBOLS=10)
         NULL,
         1,     // Low priority
         &alert_task_handle
