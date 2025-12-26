@@ -1,4 +1,8 @@
 #include "spiffs_download.h"
+#include "../config.h"
+
+#if ENABLE_SCREENSHOT
+
 #include "ui/ui_screenshot.h"
 #include "app/app_scheduler.h"
 #include <SPIFFS.h>
@@ -102,3 +106,5 @@ void spiffs_check_download_command() {
         }
     }
 }
+
+#endif // ENABLE_SCREENSHOT
