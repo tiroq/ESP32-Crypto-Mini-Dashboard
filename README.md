@@ -41,9 +41,10 @@ Optional features can be disabled at compile-time to free up flash memory. Edit 
 ```
 
 **Flash savings** (measured):
-- All features enabled: **92.2% flash** (1,207,901 bytes) - 102.8KB available
-- All features disabled: **86.4% flash** (1,132,993 bytes) - 177.7KB available
-- **Total savings: ~75KB** (enough for a web dashboard interface!)
+- Default build (HTTP): **82.1% flash** (1,076,481 bytes) - 234KB available
+- With HTTPS enabled: **92.2% flash** (1,207,901 bytes) - 102KB available  
+- Minimal (all disabled): **~72% flash** (~945,000 bytes) - 366KB available
+- **HTTPS costs 131KB** - disabled by default to maximize available space
 
 See [docs/FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md) for complete configuration guide.
 
