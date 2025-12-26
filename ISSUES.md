@@ -137,9 +137,17 @@
 **Current Flash Usage: 92.2%** (1,207,901 / 1,310,720 bytes) = **~102.8KB available**
 
 **Current limitations:**
-- ❌ **Web interface NOT feasible** (~150KB needed, only 102KB available)
+- ❌ **Web interface NOT feasible with all features enabled** (~150KB needed, only 102.8KB available)
+- ✅ **Web interface FEASIBLE with features disabled** (177.7KB available when OTA/Serial/Screenshot disabled)
 - ❌ **Localization NOT feasible** (~50-100KB needed)
 - ✅ Small features still possible (<10KB each)
+- ✅ **Feature flags available** - See [FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md) for configuration
+
+**Feature flag savings (measured):**
+- Disable OTA: **~68KB flash** (removes WebServer, Update libs, OTA UI)
+- Disable Serial: **~6KB flash** (removes all debug output)
+- Disable Screenshot: **~1KB flash** (removes SPIFFS/BMP code)
+- **Disable all: ~75KB total savings** (86.4% flash vs 92.2%)
 
 **Possible future optimizations:**
 1. Remove screenshot feature (~1-2KB)
