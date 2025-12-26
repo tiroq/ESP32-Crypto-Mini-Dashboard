@@ -634,14 +634,44 @@ lv_obj_t* ui_screens_create_chart() {
     // Title - get current symbol
     AppState state = model_snapshot();
     const char* symbol = state.symbols[state.selected_symbol_idx].symbol_name;
+    const SymbolState& sym = state.symbols[state.selected_symbol_idx];
     
     lv_obj_t* lbl_title = lv_label_create(screen);
     char title[32];
-    snprintf(title, sizeof(title), "%s Price History", symbol);
+    snprintf(title, sizeof(title), "%s History", symbol);
     lv_label_set_text(lbl_title, title);
     lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xF0B90B), 0);
     lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_14, 0);
-    lv_obj_set_pos(lbl_title, 80, 5);
+    lv_obj_set_pos(lbl_title, 90, 5);
+    
+    // Current price (top right)
+    lv_obj_t* lbl_price = lv_label_create(screen);
+    char price_text[32];
+    if (sym.binance_quote.valid) {
+        snprintf(price_text, sizeof(price_text), "$%.2f", sym.binance_quote.price);
+    } else {
+        snprintf(price_text, sizeof(price_text), "---");
+    }
+    lv_label_set_text(lbl_price, price_text);
+    lv_obj_set_style_text_color(lbl_price, lv_color_hex(0xEAECEF), 0);
+    lv_obj_set_style_text_font(lbl_price, &lv_font_montserrat_14, 0);
+    lv_obj_set_pos(lbl_price, 240, 5);
+    
+    // 24h change (below price)
+    lv_obj_t* lbl_change = lv_label_create(screen);
+    char change_text[32];
+    if (sym.binance_quote.valid) {
+        const char* sign = (sym.binance_quote.change_24h >= 0) ? "+" : "";
+        uint32_t color = (sym.binance_quote.change_24h >= 0) ? 0x0ECB81 : 0xF6465D;
+        snprintf(change_text, sizeof(change_text), "%s%.2f%%", sign, sym.binance_quote.change_24h);
+        lv_obj_set_style_text_color(lbl_change, lv_color_hex(color), 0);
+    } else {
+        snprintf(change_text, sizeof(change_text), "---");
+        lv_obj_set_style_text_color(lbl_change, lv_color_hex(0x888888), 0);
+    }
+    lv_label_set_text(lbl_change, change_text);
+    lv_obj_set_style_text_font(lbl_change, &lv_font_montserrat_10, 0);
+    lv_obj_set_pos(lbl_change, 240, 22);
     
     // Create chart (fits 320x240 screen: 5px margins, title at top, range label at bottom)
     lv_obj_t* chart = lv_chart_create(screen);
@@ -660,7 +690,6 @@ lv_obj_t* ui_screens_create_chart() {
     lv_chart_series_t* series = lv_chart_add_series(chart, lv_color_hex(0xF0B90B), LV_CHART_AXIS_PRIMARY_Y);
     
     // Populate with history data
-    const SymbolState& sym = state.symbols[state.selected_symbol_idx];
     Serial.printf("[CHART] Drawing chart for symbol %d: history_count=%d, history_head=%d\n", 
                   state.selected_symbol_idx, sym.history_count, sym.history_head);
     
