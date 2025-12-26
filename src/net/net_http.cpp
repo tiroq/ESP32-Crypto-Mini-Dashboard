@@ -18,7 +18,7 @@ static bool parse_url(const char* url, bool& is_https, String& host, int& port, 
         is_https = false;
         url_str = url_str.substring(7);
     } else {
-        Serial.println("[HTTP] ERROR: URL must start with http:// or https://");
+        DEBUG_PRINTLN("[HTTP] ERROR: URL must start with http:// or https://");
         return false;
     }
     
@@ -80,7 +80,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
 #else
     // HTTPS disabled - always use plain HTTP
     if (is_https) {
-        Serial.println("[HTTP] ERROR: HTTPS disabled, use HTTP URLs");
+        DEBUG_PRINTLN("[HTTP] ERROR: HTTPS disabled, use HTTP URLs");
         return false;
     }
     client = new WiFiClient();
@@ -92,7 +92,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     // Connect to server
     // Serial.printf("[HTTP] Connecting to %s:%d...\n", host.c_str(), port);
     if (!client->connect(host.c_str(), port)) {
-        Serial.printf("[HTTP] Connection failed (elapsed: %lu ms)\n", millis() - start_ms);
+        DEBUG_PRINTF("[HTTP] Connection failed (elapsed: %lu ms)\n", millis() - start_ms);
         delete client;
         return false;
     }
@@ -112,14 +112,14 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     while (!client->available() && (millis() - wait_start) < timeout_ms) {
         delay(1);
         if (!client->connected()) {
-            Serial.println("[HTTP] Server disconnected while waiting for response");
+            DEBUG_PRINTLN("[HTTP] Server disconnected while waiting for response");
             delete client;
             return false;
         }
     }
     
     if (!client->available()) {
-        Serial.println("[HTTP] Timeout waiting for response");
+        DEBUG_PRINTLN("[HTTP] Timeout waiting for response");
         delete client;
         return false;
     }
@@ -132,7 +132,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     // Parse status code (handle both "HTTP/1.1 200 OK" and "HTTP/1.1 200")
     int first_space = status_line.indexOf(' ');
     if (first_space < 0) {
-        Serial.println("[HTTP] Invalid status line format");
+        DEBUG_PRINTLN("[HTTP] Invalid status line format");
         delete client;
         return false;
     }
@@ -152,7 +152,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
     int status_code = status_code_str.toInt();
     
     if (status_code != 200) {
-        Serial.printf("[HTTP] Non-200 status: %d\n", status_code);
+        DEBUG_PRINTF("[HTTP] Non-200 status: %d\n", status_code);
         delete client;
         return false;
     }
@@ -179,7 +179,7 @@ bool http_get(const char* url, String& out, uint32_t timeout_ms) {
         
         // Timeout check
         if (millis() - start_ms > timeout_ms) {
-            Serial.println("[HTTP] Timeout reading body");
+            DEBUG_PRINTLN("[HTTP] Timeout reading body");
             delete client;
             return false;
         }

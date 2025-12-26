@@ -65,7 +65,7 @@ bool ota_init() {
             HTTPUpload& upload = server.upload();
             
             if (upload.status == UPLOAD_FILE_START) {
-                Serial.printf("[OTA] Starting update: %s\n", upload.filename.c_str());
+                DEBUG_PRINTF("[OTA] Starting update: %s\n", upload.filename.c_str());
                 current_status = OTA_UPDATING;
                 status_message = "Receiving firmware...";
                 update_progress = 0;
@@ -87,7 +87,7 @@ bool ota_init() {
             } 
             else if (upload.status == UPLOAD_FILE_END) {
                 if (Update.end(true)) {
-                    Serial.printf("[OTA] Update Success: %u bytes\n", upload.totalSize);
+                    DEBUG_PRINTF("[OTA] Update Success: %u bytes\n", upload.totalSize);
                     current_status = OTA_SUCCESS;
                     status_message = "Update complete!";
                     update_progress = 100;
@@ -103,7 +103,7 @@ bool ota_init() {
     server.begin();
     current_status = OTA_READY;
     status_message = "Server started on port 8080";
-    Serial.printf("[OTA] HTTP server started on http://%s:8080\n", WiFi.localIP().toString().c_str());
+    DEBUG_PRINTF("[OTA] HTTP server started on http://%s:8080\n", WiFi.localIP().toString().c_str());
     
     return true;
 }

@@ -14,22 +14,22 @@ namespace net_coinbase {
 
 bool fetch_spot(const char* product, double* out_price) {
     if (!product || !out_price) {
-        Serial.println("[COINBASE] Invalid parameters");
+        DEBUG_PRINTLN("[COINBASE] Invalid parameters");
         return false;
     }
 
     // Build URL: https://api.coinbase.com/v2/prices/BTC-USD/spot
     String url = String(COINBASE_API_BASE) + product + "/spot";
     
-    Serial.print("[COINBASE] Fetching spot for ");
-    Serial.print(product);
-    Serial.print(" from ");
-    Serial.println(url);
+    DEBUG_PRINT("[COINBASE] Fetching spot for ");
+    DEBUG_PRINT(product);
+    DEBUG_PRINT(" from ");
+    DEBUG_PRINTLN(url);
 
     // Make HTTP GET request
     String response;
     if (!http_get(url.c_str(), response, 10000)) {
-        Serial.println("[COINBASE] HTTP request failed");
+        DEBUG_PRINTLN("[COINBASE] HTTP request failed");
         return false;
     }
 
@@ -39,27 +39,27 @@ bool fetch_spot(const char* product, double* out_price) {
     DeserializationError error = deserializeJson(doc, response);
     
     if (error) {
-        Serial.print("[COINBASE] JSON parse failed: ");
-        Serial.println(error.c_str());
+        DEBUG_PRINT("[COINBASE] JSON parse failed: ");
+        DEBUG_PRINTLN(error.c_str());
         return false;
     }
 
     // Validate JSON structure
     if (!doc.containsKey("data")) {
-        Serial.println("[COINBASE] Missing 'data' field");
+        DEBUG_PRINTLN("[COINBASE] Missing 'data' field");
         return false;
     }
 
     JsonObject data = doc["data"];
     if (!data.containsKey("amount")) {
-        Serial.println("[COINBASE] Missing 'amount' field");
+        DEBUG_PRINTLN("[COINBASE] Missing 'amount' field");
         return false;
     }
 
     // Extract price as string, then convert to double
     const char* amount_str = data["amount"];
     if (!amount_str) {
-        Serial.println("[COINBASE] Invalid 'amount' field");
+        DEBUG_PRINTLN("[COINBASE] Invalid 'amount' field");
         return false;
     }
 
@@ -67,17 +67,17 @@ bool fetch_spot(const char* product, double* out_price) {
     
     // Validate price is positive
     if (price <= 0.0) {
-        Serial.print("[COINBASE] Invalid price: ");
-        Serial.println(price, 2);
+        DEBUG_PRINT("[COINBASE] Invalid price: ");
+        DEBUG_PRINTLN(price, 2);
         return false;
     }
 
     // Success
     *out_price = price;
-    Serial.print("[COINBASE] SUCCESS: ");
-    Serial.print(product);
-    Serial.print(" = $");
-    Serial.println(price, 2);
+    DEBUG_PRINT("[COINBASE] SUCCESS: ");
+    DEBUG_PRINT(product);
+    DEBUG_PRINT(" = $");
+    DEBUG_PRINTLN(price, 2);
     
     return true;
 }

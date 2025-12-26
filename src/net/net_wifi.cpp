@@ -1,4 +1,5 @@
 #include "net_wifi.h"
+#include "../config.h"
 #include "../secrets.h"
 #include <WiFi.h>
 
@@ -19,7 +20,7 @@ void net_wifi_init() {
     WiFi.setAutoReconnect(true);
     wifi_initialized = true;
     
-    Serial.println("[WIFI] Initialized");
+    DEBUG_PRINTLN("[WIFI] Initialized");
 }
 
 bool net_wifi_ensure_connected() {
@@ -33,7 +34,7 @@ bool net_wifi_ensure_connected() {
         // Rate-limited status logging
         unsigned long now = millis();
         if (now - last_status_log > STATUS_LOG_INTERVAL_MS) {
-            Serial.printf("[WIFI] Connected to %s, IP: %s, RSSI: %d dBm\n",
+            DEBUG_PRINTF("[WIFI] Connected to %s, IP: %s, RSSI: %d dBm\n",
                          WIFI_SSID, WiFi.localIP().toString().c_str(), WiFi.RSSI());
             last_status_log = now;
         }
@@ -48,24 +49,24 @@ bool net_wifi_ensure_connected() {
     last_connect_attempt = now;
     
     // Attempt connection
-    Serial.printf("[WIFI] Connecting to %s...\n", WIFI_SSID);
+    DEBUG_PRINTF("[WIFI] Connecting to %s...\n", WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     
     // Wait for connection with timeout
     unsigned long start = millis();
     while (WiFi.status() != WL_CONNECTED && (millis() - start) < CONNECT_TIMEOUT_MS) {
         delay(100);
-        Serial.print(".");
+        DEBUG_PRINT(".");
     }
-    Serial.println();
+    DEBUG_PRINTLN();
     
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("[WIFI] Connected! IP: %s, RSSI: %d dBm\n",
+        DEBUG_PRINTF("[WIFI] Connected! IP: %s, RSSI: %d dBm\n",
                      WiFi.localIP().toString().c_str(), WiFi.RSSI());
         last_status_log = millis();
         return true;
     } else {
-        Serial.printf("[WIFI] Connection failed (status: %d)\n", WiFi.status());
+        DEBUG_PRINTF("[WIFI] Connection failed (status: %d)\n", WiFi.status());
         return false;
     }
 }
