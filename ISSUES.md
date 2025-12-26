@@ -38,9 +38,14 @@
   - Exchange selection per symbol
 
 ## 🟢 Low Priority (P3)
-- [ ] **Add historical data charts for price trends**
-  - Requires significant flash space
-  - Line charts for price history
+- [x] **Add historical data charts for price trends**
+  - ✅ Stores last 30 price data points in circular buffer (RAM optimized)
+  - ✅ LVGL line chart with auto-scaling Y-axis
+  - ✅ Binance yellow (#F0B90B) line color
+  - ✅ Chart accessible via Chart button (replaced Alerts in dashboard)
+  - ✅ Shows price range and current symbol
+  - ✅ Displays "No data yet" message when history empty
+  - **Flash impact: +1,764 bytes (88.0% → 88.2%)**
 - [ ] **Add alerts/notifications for significant price changes**
   - Threshold-based alerts
   - Visual/audio indicators
@@ -77,8 +82,8 @@
 ---
 
 ## ⚠️ Flash Space Constraint
-**Current**: 88.0% used (1,154,037 / 1,310,720 bytes)  
-**Available**: ~157KB remaining
+**Current**: 88.2% used (1,155,801 / 1,310,720 bytes)  
+**Available**: ~155KB remaining
 
 **Recent optimizations:**
 - Compiler optimization (-O2): ~26KB saved
