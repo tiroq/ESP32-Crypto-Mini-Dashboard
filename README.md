@@ -2,15 +2,37 @@
 
 A real-time cryptocurrency price monitoring dashboard for the ESP32-2432S028 (Cheap Yellow Display) development board. Displays Binance and Coinbase spot prices with spread analysis and funding rate tracking.
 
+## Hardware
+
 <img src="images/esp32_2432S028.jpg" width="320">
 
-Dashboard:
+*ESP32-2432S028 development board (Cheap Yellow Display)*
 
-![Dashboard Screenshot](images/dashboard.bmp)
+## Screenshots
 
-*Live screenshot captured via serial command showing BTC/ETH/SOL prices with funding rates*
+### Physical Dashboard
 
-## Hardware
+![Dashboard Screenshot](images/dashboard.png)
+*Main dashboard showing BTC/ETH prices with funding rates*
+
+![Settings Screen](images/settings.png)
+*Settings screen with configurable alert thresholds and refresh intervals*
+
+![Chart View](images/chart.png)
+*Price history chart with 30-point moving display*
+
+### Web Interface
+
+![Web Dashboard](images/web-dashboard.png)
+*Web dashboard - real-time monitoring from any browser*
+
+![Web Settings](images/web-settings.png)
+*Web-based configuration interface*
+
+![OTA Update](images/ota-update.png)
+*OTA firmware upload page*
+
+## Hardware Specifications
 
 - **Board**: ESP32-2432S028 (CYD - Cheap Yellow Display)
 - **Display**: 2.8" ILI9341 TFT (320x240)
@@ -125,6 +147,9 @@ curl -X POST http://<ESP32-IP>:8080/api/settings/reset
   ]
 }
 ```
+
+![API Response](images/api-response.png)
+*Example API response in browser*
 
 `GET /api/settings` returns:
 ```json
