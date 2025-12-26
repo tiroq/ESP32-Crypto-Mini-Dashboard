@@ -7,6 +7,8 @@
 #include "hw/hw_display.h"
 #include "hw/hw_touch.h"
 #include "ui/ui_root.h"
+#include "ui/ui_screenshot.h"
+#include "tools/spiffs_download.h"
 #include "app/app_config.h"
 #include "app/app_model.h"
 #include "app/app_scheduler.h"
@@ -47,6 +49,9 @@ void setup() {
             delay(1000);
         }
     }
+    
+    // Initialize SPIFFS for screenshots
+    ui_screenshot_init();
 
     Serial.println("[MAIN] Setup complete\n");
     
@@ -60,6 +65,9 @@ void loop() {
     
     // Update model with Wi-Fi status every loop iteration
     model_update_wifi(net_wifi_is_connected(), net_wifi_rssi());
+    
+    // Check for serial commands (SCREENSHOT, DOWNLOAD, LIST)
+    spiffs_check_download_command();
     
     // Handle LVGL display tasks - KEEP UI LOOP CLEAN, NO NETWORK CALLS
     // Network fetching happens in scheduler net_task

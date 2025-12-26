@@ -31,4 +31,18 @@ void scheduler_init();
  */
 void scheduler_stop();
 
+/**
+ * @brief Temporarily pause network tasks
+ * 
+ * Suspends the network task to prevent interference with serial downloads.
+ */
+void scheduler_pause();
+
+/**
+ * @brief Resume network tasks
+ * 
+ * Resumes the network task after pause.
+ */
+void scheduler_resume();
+
 #endif // APP_SCHEDULER_H

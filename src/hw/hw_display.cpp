@@ -15,10 +15,18 @@ static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[LVGL_BUFFER_SIZE];
 static lv_disp_drv_t disp_drv;
 
+// Screenshot capture support
+static void (*capture_callback)(int32_t x, int32_t y, int32_t w, int32_t h, const lv_color_t* pixels) = NULL;
+
 // Display flushing callback for LVGL
 static void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
+
+    // If we're capturing, call the capture callback first
+    if (capture_callback) {
+        capture_callback(area->x1, area->y1, w, h, color_p);
+    }
 
     tft.startWrite();
     tft.setAddrWindow(area->x1, area->y1, w, h);
@@ -69,4 +77,20 @@ void hw_display_tick() {
     
     // Handle LVGL tasks including input device polling
     lv_timer_handler();
+}
+
+uint16_t hw_display_read_pixel(int32_t x, int32_t y) {
+    return tft.readPixel(x, y);
+}
+
+void hw_display_read_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data) {
+    tft.readRect(x, y, w, h, data);
+}
+
+void hw_display_start_capture(void (*callback)(int32_t x, int32_t y, int32_t w, int32_t h, const lv_color_t* pixels)) {
+    capture_callback = callback;
+}
+
+void hw_display_stop_capture() {
+    capture_callback = NULL;
 }

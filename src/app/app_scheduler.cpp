@@ -387,3 +387,17 @@ void scheduler_stop() {
         Serial.println("[SCHEDULER] Alert task stopped");
     }
 }
+
+void scheduler_pause() {
+    if (net_task_handle != NULL) {
+        vTaskSuspend(net_task_handle);
+        Serial.println("[SCHEDULER] Network task paused");
+    }
+}
+
+void scheduler_resume() {
+    if (net_task_handle != NULL) {
+        vTaskResume(net_task_handle);
+        Serial.println("[SCHEDULER] Network task resumed");
+    }
+}

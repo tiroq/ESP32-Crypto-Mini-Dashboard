@@ -47,6 +47,14 @@ bool config_load() {
     // Try to load from storage
     if (hw_storage_load_config(&g_config)) {
         Serial.println("[CONFIG] Configuration loaded from NVS");
+        
+        // Force update stale threshold if it's still at old default
+        if (g_config.stale_ms == 15000) {
+            g_config.stale_ms = 30000;
+            Serial.println("[CONFIG] Updated stale threshold: 15s -> 30s");
+            config_save();  // Save updated config
+        }
+        
         return true;
     } else {
         Serial.println("[CONFIG] No saved config or version mismatch - using defaults");
