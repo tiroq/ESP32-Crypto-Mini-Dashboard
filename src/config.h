@@ -15,7 +15,12 @@
 
 // Enable screenshot feature (save screen to SPIFFS via serial commands)
 // Cost when enabled: ~1KB flash (disabled by default)
-#define ENABLE_SCREENSHOT 0
+#define ENABLE_SCREENSHOT 1
+
+// Enable power management (sleep modes, backlight dimming, modem sleep)
+// Cost when enabled: ~2KB flash, enables battery-saving features
+#define ENABLE_POWER_MANAGEMENT 1
+
 // Enable HTTPS for API requests (uses WiFiClientSecure with mbedTLS)
 // Cost when enabled: ~131KB flash (HTTP is default, saves space)
 // Note: HTTP is less secure but functional for public API endpoints

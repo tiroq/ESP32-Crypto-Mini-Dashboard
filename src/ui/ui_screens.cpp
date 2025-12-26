@@ -2,6 +2,9 @@
 #include "../config.h"
 #include "../app/app_model.h"
 #include "../app/app_config.h"
+#if ENABLE_POWER_MANAGEMENT
+#include "../hw/hw_power.h"
+#endif
 #if ENABLE_OTA
 #include "../net/net_ota.h"
 #include <WiFi.h>
@@ -310,6 +313,9 @@ static lv_obj_t* lbl_spread_value = NULL;
 static lv_obj_t* lbl_funding_value = NULL;
 static lv_obj_t* lbl_price_refresh_value = NULL;
 static lv_obj_t* lbl_funding_refresh_value = NULL;
+#if ENABLE_POWER_MANAGEMENT
+static lv_obj_t* dropdown_power_mode = NULL;
+#endif
 
 lv_obj_t* ui_screens_create_settings() {
     lv_obj_t* screen = lv_obj_create(NULL);
@@ -464,6 +470,38 @@ lv_obj_t* ui_screens_create_settings() {
     lv_slider_set_value(slider_funding_refresh, config_get_funding_refresh_ms() / 1000, LV_ANIM_OFF);
     lv_obj_add_event_cb(slider_funding_refresh, settings_funding_refresh_changed, LV_EVENT_VALUE_CHANGED, NULL);
     
+    y_pos += row_height + 10;
+    
+#if ENABLE_POWER_MANAGEMENT
+    // ===== POWER MANAGEMENT SECTION =====
+    lv_obj_t* lbl_section3 = lv_label_create(screen);
+    lv_label_set_text(lbl_section3, "Power Management");
+    lv_obj_set_style_text_color(lbl_section3, lv_color_hex(0xF0B90B), 0);
+    lv_obj_set_pos(lbl_section3, 10, y_pos);
+    
+    y_pos += 20;
+    
+    // Power mode dropdown
+    lv_obj_t* lbl_power_mode = lv_label_create(screen);
+    lv_label_set_text(lbl_power_mode, "Power Mode");
+    lv_obj_set_style_text_color(lbl_power_mode, lv_color_hex(0xCCCCCC), 0);
+    lv_obj_set_pos(lbl_power_mode, 15, y_pos);
+    
+    dropdown_power_mode = lv_dropdown_create(screen);
+    lv_dropdown_set_options(dropdown_power_mode, "Normal\nBattery Saver\nDeep Sleep");
+    lv_obj_set_size(dropdown_power_mode, 200, 35);
+    lv_obj_set_pos(dropdown_power_mode, 15, y_pos + 20);
+    lv_obj_set_style_bg_color(dropdown_power_mode, lv_color_hex(0x2B3139), 0);
+    lv_obj_set_style_text_color(dropdown_power_mode, lv_color_hex(0xEAECEF), 0);
+    lv_dropdown_set_selected(dropdown_power_mode, (uint16_t)config_get_power_mode());
+    
+    // Add description label
+    lv_obj_t* lbl_power_desc = lv_label_create(screen);
+    lv_label_set_text(lbl_power_desc, "Controls backlight and WiFi sleep");
+    lv_obj_set_style_text_color(lbl_power_desc, lv_color_hex(0x888888), 0);
+    lv_obj_set_pos(lbl_power_desc, 15, y_pos + 58);
+#endif
+    
     // Update value labels
     settings_spread_changed(NULL);
     settings_funding_changed(NULL);
@@ -539,6 +577,17 @@ static void settings_save_clicked(lv_event_t* e) {
         config_set_funding_refresh_ms(val * 1000);
     }
     
+#if ENABLE_POWER_MANAGEMENT
+    // Read power mode dropdown
+    if (dropdown_power_mode) {
+        uint16_t selected = lv_dropdown_get_selected(dropdown_power_mode);
+        PowerMode mode = (PowerMode)selected;
+        config_set_power_mode(mode);
+        power_set_mode(mode);  // Apply immediately
+        DEBUG_PRINTF("[UI] Power mode set to %d\n", mode);
+    }
+#endif
+    
     // Save to NVS
     if (config_save()) {
         DEBUG_PRINTLN("[UI] Settings saved successfully to NVS");
@@ -589,6 +638,9 @@ static void settings_reset_clicked(lv_event_t* e) {
     config_set_funding_alert_pct(0.01);       // Default 0.01%
     config_set_price_refresh_ms(5000);        // Default 5s
     config_set_funding_refresh_ms(60000);     // Default 60s
+#if ENABLE_POWER_MANAGEMENT
+    config_set_power_mode(POWER_NORMAL);      // Default Normal mode
+#endif
     
     // Update sliders to reflect defaults
     if (slider_spread) {
@@ -607,6 +659,12 @@ static void settings_reset_clicked(lv_event_t* e) {
         lv_slider_set_value(slider_funding_refresh, 60, LV_ANIM_ON);
         settings_funding_refresh_changed(NULL);
     }
+#if ENABLE_POWER_MANAGEMENT
+    if (dropdown_power_mode) {
+        lv_dropdown_set_selected(dropdown_power_mode, (uint16_t)POWER_NORMAL);
+        power_set_mode(POWER_NORMAL);  // Apply immediately
+    }
+#endif
     
     // Show confirmation
     lv_obj_t* popup = lv_obj_create(lv_scr_act());
