@@ -1,6 +1,7 @@
 #ifndef UI_SCREENS_H
 #define UI_SCREENS_H
 
+#include "../config.h"
 #include <Arduino.h>
 #include <lvgl.h>
 
@@ -25,7 +26,10 @@ lv_obj_t* ui_screens_create_dashboard();
 lv_obj_t* ui_screens_create_alerts();
 lv_obj_t* ui_screens_create_settings();
 lv_obj_t* ui_screens_create_chart();
+
+#if ENABLE_OTA
 lv_obj_t* ui_screens_create_ota();
+#endif
 
 // Get widget references for data binding
 DashboardWidgets ui_screens_get_dashboard_widgets();

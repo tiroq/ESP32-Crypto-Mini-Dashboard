@@ -1,8 +1,11 @@
 #include "ui_screens.h"
+#include "../config.h"
 #include "../app/app_model.h"
 #include "../app/app_config.h"
+#if ENABLE_OTA
 #include "../net/net_ota.h"
 #include <WiFi.h>
+#endif
 
 // Screen and widget references
 static lv_obj_t* screen_dashboard = NULL;
@@ -23,7 +26,7 @@ static lv_obj_t* lbl_funding = NULL;
 
 // Button event handlers
 static void btn_prev_clicked(lv_event_t* e) {
-    Serial.println("[UI] Prev button clicked");
+    DEBUG_PRINTLN("[UI] Prev button clicked");
     int current = model_get_selected();
     int next = (current - 1 + 3) % 3;  // Cycle: 0->2, 2->1, 1->0
     model_set_selected(next);
@@ -35,7 +38,7 @@ static void btn_prev_clicked(lv_event_t* e) {
 }
 
 static void btn_next_clicked(lv_event_t* e) {
-    Serial.println("[UI] Next button clicked");
+    DEBUG_PRINTLN("[UI] Next button clicked");
     int current = model_get_selected();
     int next = (current + 1) % 3;  // Cycle: 0->1, 1->2, 2->0
     model_set_selected(next);
@@ -47,14 +50,14 @@ static void btn_next_clicked(lv_event_t* e) {
 }
 
 static void btn_alerts_clicked(lv_event_t* e) {
-    Serial.println("[UI] Alerts button clicked - switching to Alerts screen");
+    DEBUG_PRINTLN("[UI] Alerts button clicked - switching to Alerts screen");
     if (screen_alerts) {
         lv_scr_load(screen_alerts);
     }
 }
 
 static void btn_chart_clicked(lv_event_t* e) {
-    Serial.println("[UI] Chart button clicked - switching to Chart screen");
+    DEBUG_PRINTLN("[UI] Chart button clicked - switching to Chart screen");
     
     // Delete old chart screen and recreate with fresh data
     if (screen_chart) {
@@ -65,30 +68,32 @@ static void btn_chart_clicked(lv_event_t* e) {
     ui_screens_create_chart();
     
     if (screen_chart) {
-        Serial.println("[UI] Loading chart screen...");
+        DEBUG_PRINTLN("[UI] Loading chart screen...");
         lv_scr_load(screen_chart);
     } else {
-        Serial.println("[UI] ERROR: screen_chart is NULL!");
+        DEBUG_PRINTLN("[UI] ERROR: screen_chart is NULL!");
     }
 }
 
 static void btn_settings_clicked(lv_event_t* e) {
-    Serial.println("[UI] Settings button clicked - switching to Settings screen");
+    DEBUG_PRINTLN("[UI] Settings button clicked - switching to Settings screen");
     if (screen_settings) {
         lv_scr_load(screen_settings);
     }
 }
 
+#if ENABLE_OTA
 static void btn_ota_clicked(lv_event_t* e) {
-    Serial.println("[UI] OTA button clicked - switching to OTA screen");
+    DEBUG_PRINTLN("[UI] OTA button clicked - switching to OTA screen");
     if (!screen_ota) {
         screen_ota = ui_screens_create_ota();
     }
     lv_scr_load(screen_ota);
 }
+#endif
 
 static void btn_back_clicked(lv_event_t* e) {
-    Serial.println("[UI] Back button clicked - returning to Dashboard");
+    DEBUG_PRINTLN("[UI] Back button clicked - returning to Dashboard");
     if (screen_dashboard) {
         lv_scr_load(screen_dashboard);
     }
@@ -214,10 +219,17 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_obj_set_style_pad_all(footer, 4, 0);
     lv_obj_clear_flag(footer, LV_OBJ_FLAG_SCROLLABLE);
 
+#if ENABLE_OTA
     // Button dimensions (5 buttons: Prev, Next, Chart, OTA, Settings)
     const int btn_width = 58;
     const int btn_height = 42;
     const int btn_gap = 4;
+#else
+    // Button dimensions (4 buttons: Prev, Next, Chart, Settings)
+    const int btn_width = 74;
+    const int btn_height = 42;
+    const int btn_gap = 2;
+#endif
 
     // Prev button
     lv_obj_t* btn_prev = lv_btn_create(footer);
@@ -249,6 +261,7 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_label_set_text(lbl_chart, "Chart");
     lv_obj_center(lbl_chart);
 
+#if ENABLE_OTA
     // OTA button
     lv_obj_t* btn_ota = lv_btn_create(footer);
     lv_obj_set_size(btn_ota, btn_width, btn_height);
@@ -259,17 +272,23 @@ lv_obj_t* ui_screens_create_dashboard() {
     lv_label_set_text(lbl_ota, "OTA");
     lv_obj_center(lbl_ota);
 
-    // Settings button
+    // Settings button (position 4 when OTA enabled)
     lv_obj_t* btn_settings = lv_btn_create(footer);
     lv_obj_set_size(btn_settings, btn_width, btn_height);
     lv_obj_set_pos(btn_settings, 4 + (btn_width + btn_gap) * 4, 4);
+#else
+    // Settings button (position 3 when OTA disabled)
+    lv_obj_t* btn_settings = lv_btn_create(footer);
+    lv_obj_set_size(btn_settings, btn_width, btn_height);
+    lv_obj_set_pos(btn_settings, 4 + (btn_width + btn_gap) * 3, 4);
+#endif
     lv_obj_set_style_bg_color(btn_settings, lv_color_hex(0xF0B90B), 0);
     lv_obj_add_event_cb(btn_settings, btn_settings_clicked, LV_EVENT_CLICKED, NULL);
     lv_obj_t* lbl_settings = lv_label_create(btn_settings);
     lv_label_set_text(lbl_settings, "Setup");
     lv_obj_center(lbl_settings);
 
-    Serial.println("[UI] Dashboard screen created");
+    DEBUG_PRINTLN("[UI] Dashboard screen created");
     return screen;
 }
 
@@ -294,7 +313,7 @@ lv_obj_t* ui_screens_create_alerts() {
     lv_label_set_text(lbl_back, "Back");
     lv_obj_center(lbl_back);
     
-    Serial.println("[UI] Alerts screen created");
+    DEBUG_PRINTLN("[UI] Alerts screen created");
     return screen;
 }
 
@@ -463,7 +482,7 @@ lv_obj_t* ui_screens_create_settings() {
     settings_price_refresh_changed(NULL);
     settings_funding_refresh_changed(NULL);
     
-    Serial.println("[UI] Settings screen created with controls");
+    DEBUG_PRINTLN("[UI] Settings screen created with controls");
     return screen;
 }
 
@@ -507,7 +526,7 @@ static void settings_funding_refresh_changed(lv_event_t* e) {
 }
 
 static void settings_save_clicked(lv_event_t* e) {
-    Serial.println("[UI] Save button clicked");
+    DEBUG_PRINTLN("[UI] Save button clicked");
     
     // Read slider values and update config
     if (slider_spread) {
@@ -534,7 +553,7 @@ static void settings_save_clicked(lv_event_t* e) {
     
     // Save to NVS
     if (config_save()) {
-        Serial.println("[UI] Settings saved successfully to NVS");
+        DEBUG_PRINTLN("[UI] Settings saved successfully to NVS");
         
         // Show "Saved!" confirmation popup
         lv_obj_t* popup = lv_obj_create(lv_scr_act());
@@ -553,7 +572,7 @@ static void settings_save_clicked(lv_event_t* e) {
         
         lv_obj_del_delayed(popup, 1500);
     } else {
-        Serial.println("[UI] ERROR: Failed to save settings");
+        DEBUG_PRINTLN("[UI] ERROR: Failed to save settings");
         
         // Show error popup
         lv_obj_t* popup = lv_obj_create(lv_scr_act());
@@ -575,7 +594,7 @@ static void settings_save_clicked(lv_event_t* e) {
 }
 
 static void settings_reset_clicked(lv_event_t* e) {
-    Serial.println("[UI] Reset button clicked - restoring defaults");
+    DEBUG_PRINTLN("[UI] Reset button clicked - restoring defaults");
     
     // Reset to default values
     config_set_spread_alert_pct(0.5);         // Default 0.5%
@@ -634,7 +653,7 @@ DashboardWidgets ui_screens_get_dashboard_widgets() {
 
 // Chart screen with price history
 lv_obj_t* ui_screens_create_chart() {
-    Serial.println("[UI] Creating chart screen...");
+    DEBUG_PRINTLN("[UI] Creating chart screen...");
     
     lv_obj_t* screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x181A20), 0);
@@ -750,12 +769,13 @@ lv_obj_t* ui_screens_create_chart() {
         lv_obj_center(lbl_no_data);
     }
     
-    Serial.println("[UI] Chart screen created");
+    DEBUG_PRINTLN("[UI] Chart screen created");
     return screen;
 }
 
+#if ENABLE_OTA
 lv_obj_t* ui_screens_create_ota() {
-    Serial.println("[UI] Creating OTA screen...");
+    DEBUG_PRINTLN("[UI] Creating OTA screen...");
     
     lv_obj_t* screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x181A20), 0);
@@ -812,6 +832,7 @@ lv_obj_t* ui_screens_create_ota() {
     lv_obj_set_style_text_font(lbl_steps, &lv_font_montserrat_14, 0);
     lv_obj_set_pos(lbl_steps, 10, 135);
     
-    Serial.println("[UI] OTA screen created");
+    DEBUG_PRINTLN("[UI] OTA screen created");
     return screen;
 }
+#endif // ENABLE_OTA
