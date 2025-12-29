@@ -30,9 +30,22 @@
   - ✅ UI bindings already use caching - Only updates changed values
   - ✅ LVGL refresh at 250ms - Good balance between responsiveness and performance
   - **Result: Flash 90.0% → 88.0%, saved ~26KB**
+- [x] **Power management for battery-operated setups**
+  - ✅ 3 modes: Normal (full), Battery Saver (dimmed, WiFi sleep), Deep Sleep (1min timer wake)
+  - ✅ PWM backlight control (0-255 brightness)
+  - ✅ WiFi modem sleep support (esp_wifi_set_ps)
+  - ✅ Deep sleep with timer wake (esp_deep_sleep_start)
+  - ✅ Settings UI with power mode dropdown
+  - ✅ Configuration persistence in NVS
+  - **Flash impact: +175KB (88.0% → 94.6%)**
+  - ⚠️ **Large flash increase due to WiFi PM libraries (esp_wifi, esp_pm)**
 - [ ] **Add more coins**
   - Support 5-10 symbols
   - Configurable watchlist
+  - ⚠️ **BLOCKED: Multi-symbol implementation caused FreeRTOS mutex deadlock (xTaskPriorityDisinherit assertion)**
+  - ⚠️ **Root cause: Symbol array expansion from 3→10 + mutex interactions triggered priority inversion**
+  - ⚠️ **Reverted to working state (git reset --hard 9550d67)**
+  - 📋 **TODO: Needs careful redesign to avoid mutex issues with larger symbol arrays**
 - [ ] **Add more exchanges**
   - Kraken, Coinbase Pro
   - Exchange selection per symbol
