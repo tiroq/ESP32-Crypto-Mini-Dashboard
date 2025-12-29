@@ -310,12 +310,16 @@ static void net_task(void* parameter) {
         }
         
         // Stale data detection (Task 8.2)
-        // Check if any symbol data is older than STALE_MS threshold
+        // Check if any ENABLED symbol data is older than STALE_MS threshold
         AppState snapshot = model_snapshot();
+        const AppConfig& cfg = config_get();
         bool any_stale = false;
         uint32_t stale_threshold_ms = config_get_stale_ms();
         
-        for (int i = 0; i < config_get_num_symbols(); i++) {
+        for (int i = 0; i < MAX_SYMBOLS; i++) {
+            // Skip disabled symbols - they won't be updated
+            if (!cfg.symbols[i].enabled) continue;
+            
             if (snapshot.symbols[i].last_update_ms == 0) {
                 // Never updated - consider stale (but don't log every time)
                 any_stale = true;
